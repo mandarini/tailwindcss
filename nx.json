@@ -18,10 +18,14 @@
     }
   },
   "defaultBase": "next",
-  "nxCloudId": "66ec376460432e7b1974f647",
+  "nxCloudId": "66ec589af76d115a9da91161",
   "namedInputs": {
-    "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"],
-    "default": ["sharedGlobals"]
+    "sharedGlobals": [
+      "{workspaceRoot}/.github/workflows/ci.yml"
+    ],
+    "default": [
+      "sharedGlobals"
+    ]
   },
   "nxCloudUrl": "https://staging.nx.app"
 }
