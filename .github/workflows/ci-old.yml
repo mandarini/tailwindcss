@@ -2,15 +2,14 @@ name: CI
 
 on:
   push:
-    branches: [next, main]
+    branches: [next]
   pull_request:
 
 permissions:
-  actions: read
   contents: read
 
 jobs:
-  main:
+  tests:
     strategy:
       fail-fast: false
       matrix:
@@ -22,9 +21,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - uses: pnpm/action-setup@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
@@ -33,10 +29,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
-      # Nx Cloud start-ci-run
-      - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
-
-      # Cargo cache
+      # Cargo already skips downloading dependencies if they already exist
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -48,7 +41,7 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # Oxide Rust build cache
+      # Cache the `oxide` Rust build
       - name: Cache oxide build
         uses: actions/cache@v4
         with:
@@ -62,15 +55,22 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
-      - uses: nrwl/nx-set-shas@v4
+      - name: Build
+        run: pnpm run build
 
-      # Combined Nx Affected command for lint, test, and build
-      - name: Run affected lint, test, and build
-        run: npx nx affected --target=lint,test,build --parallel=3
+      - name: Lint
+        run: pnpm run lint
+        # Only lint on linux to avoid \r\n line ending errors
+        if: matrix.runner == 'ubuntu-latest'
 
-      # Playwright setup and tests
+      - name: Test
+        run: pnpm run test
+
+      - name: Integration Tests
+        run: pnpm run test:integrations
+
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
       - name: Run Playwright tests
-        run: npx nx affected -t test:ui
+        run: npm run test:ui
