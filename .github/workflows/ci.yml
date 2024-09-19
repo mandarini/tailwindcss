@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [next, main]
+    branches: [next]
   pull_request:
 
 permissions:
@@ -63,6 +63,8 @@ jobs:
         run: pnpm install
 
       - uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: 'next'
 
       # Combined Nx Affected command for lint, test, and build
       - name: Run affected lint, test, and build
