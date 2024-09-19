@@ -34,7 +34,7 @@ jobs:
           cache: 'pnpm'
 
       # Nx Cloud start-ci-run
-      - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="build"
+      - run: npx nx-cloud start-ci-run --distribute-on="4 linux-medium-js" --stop-agents-after="build"
 
       # Cargo cache
       - name: Cache cargo
@@ -65,14 +65,16 @@ jobs:
       - uses: nrwl/nx-set-shas@v4
         with:
           main-branch-name: 'next'
+    
+      # Playwright setup and tests
+      - name: Install Playwright Browsers
+        run: npx playwright install --with-deps
+  
+      - name: Run Playwright tests
+        run: npx nx affected -t test:ui
 
       # Combined Nx Affected command for lint, test, and build
       - name: Run affected lint, test, and build
         run: npx nx affected --target=lint,test,build --parallel=3
 
-      # Playwright setup and tests
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
 
-      - name: Run Playwright tests
-        run: npx nx affected -t test:ui
