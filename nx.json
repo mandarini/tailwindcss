@@ -14,7 +14,6 @@
     }
   },
   "defaultBase": "next",
-  "nxCloudId": "66ec376460432e7b1974f647",
   "namedInputs": {
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"],
     "default": ["sharedGlobals"]
