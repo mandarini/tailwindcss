@@ -90,5 +90,17 @@
     "@tailwindcss/oxide": "workspace:^",
     "@types/node": "catalog:",
     "lightningcss": "catalog:"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "dependsOn": [
+          {
+            "projects": "internal-postcss-fix-relative-paths",
+            "target": "build"
+          }
+        ]
+      }
+    }
   }
 }
