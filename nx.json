@@ -16,6 +16,9 @@
     "integration-test": {
       "cache": true,
       "dependsOn": ["^build"]
+    },
+    "test":{
+      "cache": true
     }
   },
   "defaultBase": "next",

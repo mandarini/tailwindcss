@@ -82,10 +82,10 @@ jobs:
 
       # Nx Affected command build
       - name: Run affected for build
-        run: npx nx affected --target=build --parallel=3 --exclude=nextjs-playground,vite-playground
+        run: npx nx affected -t=build --parallel=3 --exclude=nextjs-playground,vite-playground
 
       - name: Run affected for lint
-        run: npx nx affected --target=lint
+        run: npx nx affected -t=lint
         # Only lint on linux to avoid \r\n line ending errors
         if: matrix.runner == 'ubuntu-latest'
 
@@ -94,11 +94,11 @@ jobs:
         run: npx playwright install --with-deps
 
       - name: Run affected for Playwright tests
-        run: npx nx affected -t test:ui
+        run: npx nx affected -t=test:ui
 
       # Nx Affected command for tests
       - name: Run affected for tests
-        run: npx nx affected --target=test --parallel=3
+        run: npx nx affected -t=test --parallel=3
 
       # # Nx Affected command for integration tests
       # - name: Run affected for integration tests
