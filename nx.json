@@ -7,7 +7,8 @@
       "cache": true
     },
     "lint": {
-      "cache": true
+      "cache": true,
+      "dependsOn": ["^build"]
     },
     "test:ui": {
       "cache": true
