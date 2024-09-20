@@ -41,7 +41,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install --ignore-scripts --filter=!./playgrounds/*
+        run: pnpm install
 
       # Install Rust
       - name: Install Rust (Stable)
