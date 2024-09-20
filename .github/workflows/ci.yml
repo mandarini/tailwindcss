@@ -34,7 +34,7 @@ jobs:
           cache: 'pnpm'
 
       # Nx Cloud start-ci-run
-      # - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
+      - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
 
       # Cargo cache
       - name: Cache cargo
