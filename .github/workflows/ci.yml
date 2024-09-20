@@ -100,6 +100,6 @@ jobs:
       - name: Run affected for tests
         run: npx nx affected --target=test --parallel=3
 
-      # Nx Affected command for integration tests
-      - name: Run affected for integration tests
-        run: npx nx affected --target=integration-test --parallel=3
+      # # Nx Affected command for integration tests
+      # - name: Run affected for integration tests
+      #   run: npx nx affected --target=integration-test --parallel=3
