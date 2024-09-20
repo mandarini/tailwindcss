@@ -15,9 +15,12 @@
     },
     "integration-test": {
       "cache": true,
-      "dependsOn": ["^build"]
+      "dependsOn": ["^build", "^postbuild"]
     },
-    "test":{
+    "test": {
+      "cache": true
+    },
+    "postbuild": {
       "cache": true
     }
   },
