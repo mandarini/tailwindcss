@@ -18,13 +18,10 @@ jobs:
         runner: [ubuntu-latest, windows-latest, macos-14]
         include:
           - os: ubuntu-latest
-            rust-required: true
             target: x86_64-unknown-linux-gnu
           - os: windows-latest
-            rust-required: false
             target: x86_64-pc-windows-msvc
           - os: macos-14
-            rust-required: true
             target: aarch64-apple-darwin
 
     runs-on: ${{ matrix.runner }}
@@ -46,18 +43,15 @@ jobs:
       - name: Install dependencies
         run: pnpm install --ignore-scripts --filter=!./playgrounds/*
 
-      # Install Rust if needed
+      # Install Rust
       - name: Install Rust (Stable)
-        if: ${{ matrix.rust-required }}
         run: rustup default stable
 
       - name: Setup rust target
-        if: ${{ matrix.rust-required }}
         run: rustup target add ${{ matrix.target }}
 
-      # Cache cargo if Rust is required
+      # Cache cargo if Rust
       - name: Cache cargo
-        if: ${{ matrix.rust-required }}
         uses: actions/cache@v4
         with:
           path: |
@@ -70,7 +64,6 @@ jobs:
 
       # Cache the `oxide` Rust build if Rust is required
       - name: Cache oxide build
-        if: ${{ matrix.rust-required }}
         uses: actions/cache@v4
         with:
           path: |
@@ -81,7 +74,7 @@ jobs:
           key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
       # Nx Cloud start-ci-run
-      - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
+      # - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
 
       - uses: nrwl/nx-set-shas@v4
         with:
@@ -90,10 +83,6 @@ jobs:
       # Nx Affected command build
       - name: Run affected for test and build
         run: npx nx affected --target=build --parallel=3 --exclude=nextjs-playground,vite-playground
-
-      # Combined Nx Affected command for test and build
-      - name: Run affected for tests
-        run: npx nx affected --target=test,integration-test --parallel=3
 
       - name: Lint
         run: npx nx affected --target=lint
@@ -106,3 +95,11 @@ jobs:
 
       - name: Run Playwright tests
         run: npx nx affected -t test:ui
+
+      # Nx Affected command for tests
+      - name: Run affected for tests
+        run: npx nx affected --target=test --parallel=3
+
+      # Nx Affected command for integration tests
+      - name: Run affected for tests
+        run: npx nx affected --target=integration-test --parallel=3
