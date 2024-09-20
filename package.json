@@ -33,18 +33,18 @@
   },
   "scripts": {
     "format": "prettier --write .",
-    "lint": "prettier --check . && turbo lint",
-    "build": "turbo build --filter=!./playgrounds/*",
+    "lint": "prettier --check . && nx run-many -t lint",
+    "build": "nx run-many -t build --exclude=*-playground",
     "postbuild": "node ./scripts/pack-packages.mjs",
-    "dev": "turbo dev --filter=!./playgrounds/*",
+    "dev": "nx run-many -t dev --exclude=*-playground",
     "test": "cargo test && vitest run",
-    "test:integrations": "vitest --root=./integrations --no-file-parallelism",
-    "test:ui": "pnpm run --filter=tailwindcss test:ui",
+    "test:integrations": "nx integration-test internal-integrations",
+    "test:ui": "pnpm nx test:ui tailwindcss",
     "tdd": "vitest",
     "bench": "vitest bench",
     "version-packages": "node ./scripts/version-packages.mjs",
-    "vite": "pnpm run --filter=vite-playground dev",
-    "nextjs": "pnpm run --filter=nextjs-playground dev"
+    "vite": "pnpm nx dev vite-playground",
+    "nextjs": "pnpm nx dev nextjs-playground"
   },
   "license": "MIT",
   "devDependencies": {

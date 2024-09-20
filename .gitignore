@@ -8,8 +8,5 @@ blob-report/
 playwright/.cache/
 target/
 .debug
-
-
-
 .nx/cache
 .nx/workspace-data

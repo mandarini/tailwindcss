@@ -2,30 +2,27 @@
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
   "targetDefaults": {
     "build": {
-      "dependsOn": [
-        "^build"
-      ],
-      "outputs": [
-        "{projectRoot}/dist"
-      ],
+      "dependsOn": ["^build"],
+      "outputs": ["{projectRoot}/dist"],
       "cache": true
     },
     "lint": {
-      "cache": true
+      "cache": true,
+      "dependsOn": ["^build"]
     },
     "test:ui": {
       "cache": true
+    },
+    "integration-test": {
+      "cache": true,
+      "dependsOn": ["^build"]
     }
   },
   "defaultBase": "next",
   "nxCloudId": "66ec5a33f76d115a9da9116a",
   "namedInputs": {
-    "sharedGlobals": [
-      "{workspaceRoot}/.github/workflows/ci.yml"
-    ],
-    "default": [
-      "sharedGlobals"
-    ]
+    "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"],
+    "default": ["sharedGlobals"]
   },
   "nxCloudUrl": "https://staging.nx.app"
 }
