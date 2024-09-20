@@ -13,8 +13,9 @@
     "test:ui": {
       "cache": true
     },
-    "test:integrations": {
-      "cache": true
+    "integration-test": {
+      "cache": true,
+      "dependsOn": ["^build"]
     }
   },
   "defaultBase": "next",
