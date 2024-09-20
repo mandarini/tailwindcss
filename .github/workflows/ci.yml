@@ -87,14 +87,17 @@ jobs:
         with:
           main-branch-name: 'next'
 
-      # Combined Nx Affected command for test and build
+      # Nx Affected command build
       - name: Run affected for test and build
-        run: npx nx affected --target=test,build,integration-test --parallel=3
+        run: npx nx affected --target=build --parallel=3 --exclude=nextjs-playground,vite-playground
+
+      # Combined Nx Affected command for test and build
+      - name: Run affected for tests
+        run: npx nx affected --target=test,integration-test --parallel=3
 
       - name: Lint
         run: npx nx affected --target=lint
         # Only lint on linux to avoid \r\n line ending errors
-
         if: matrix.runner == 'ubuntu-latest'
 
       # Playwright setup and tests
