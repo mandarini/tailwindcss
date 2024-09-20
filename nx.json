@@ -11,6 +11,9 @@
     },
     "test:ui": {
       "cache": true
+    },
+    "test:integrations": {
+      "cache": true
     }
   },
   "defaultBase": "next",
