@@ -1,0 +1,16 @@
+{
+  "targets": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["./index.d.ts", "./index.js", "./*.node"],
+      "inputs": ["./src/**/*", "./build.rs", "./package.json", "./Cargo.toml"]
+    },
+    "dev": {
+      "dependsOn": ["^dev"],
+      "outputs": ["./index.d.ts", "./index.js", "./*.node"],
+      "inputs": ["./src/**/*", "./build.rs", "./package.json", "./Cargo.toml"],
+      "cache": false,
+      "persistent": true
+    }
+  }
+}
