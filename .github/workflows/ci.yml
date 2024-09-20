@@ -81,7 +81,7 @@ jobs:
           key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
       # Nx Cloud start-ci-run
-      - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
+      # - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
 
       - uses: nrwl/nx-set-shas@v4
         with:
@@ -108,5 +108,5 @@ jobs:
         run: npx nx affected -t=test --parallel=3
 
       # # Nx Affected command for integration tests
-      # - name: Run affected for integration tests
-      #   run: npx nx affected --target=integration-test --parallel=3
+      - name: Run affected for integration tests
+        run: npx nx affected --target=integration-test --parallel=3
