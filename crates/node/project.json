@@ -2,11 +2,11 @@
   "targets": {
     "build": {
       "dependsOn": ["^build"],
-      "inputs": ["./src/**/*", "./build.rs", "./package.json", "./Cargo.toml"]
+      "inputs": ["{projectRoot}/src/**/*", "{projectRoot}/build.rs", "{projectRoot}/package.json", "{projectRoot}/Cargo.toml"]
     },
     "dev": {
       "dependsOn": ["^dev"],
-      "inputs": ["./src/**/*", "./build.rs", "./package.json", "./Cargo.toml"],
+      "inputs": ["{projectRoot}/src/**/*", "{projectRoot}/build.rs", "{projectRoot}/package.json", "{projectRoot}/Cargo.toml"],
       "cache": false,
       "persistent": true
     }
