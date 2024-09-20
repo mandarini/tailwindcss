@@ -90,6 +90,9 @@ jobs:
       # Nx Affected command build
       - name: Run affected for build except playgrounds
         run: npx nx affected -t=build --parallel=3 --exclude=nextjs-playground,vite-playground
+      
+      - name: Run affected for postbuild except playgrounds
+        run: npx nx affected -t=postbuild --parallel=3 --exclude=nextjs-playground,vite-playground
 
       - name: Run affected for lint
         run: npx nx affected -t=lint
