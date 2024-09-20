@@ -62,7 +62,7 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # Cache the `oxide` Rust build if Rust is required
+      # Cache the `oxide` Rust build
       - name: Cache oxide build
         uses: actions/cache@v4
         with:
@@ -81,10 +81,10 @@ jobs:
           main-branch-name: 'next'
 
       # Nx Affected command build
-      - name: Run affected for test and build
+      - name: Run affected for build
         run: npx nx affected --target=build --parallel=3 --exclude=nextjs-playground,vite-playground
 
-      - name: Lint
+      - name: Run affected for lint
         run: npx nx affected --target=lint
         # Only lint on linux to avoid \r\n line ending errors
         if: matrix.runner == 'ubuntu-latest'
@@ -93,7 +93,7 @@ jobs:
       - name: Install Playwright Browsers
         run: npx playwright install --with-deps
 
-      - name: Run Playwright tests
+      - name: Run affected for Playwright tests
         run: npx nx affected -t test:ui
 
       # Nx Affected command for tests
@@ -101,5 +101,5 @@ jobs:
         run: npx nx affected --target=test --parallel=3
 
       # Nx Affected command for integration tests
-      - name: Run affected for tests
+      - name: Run affected for integration tests
         run: npx nx affected --target=integration-test --parallel=3
