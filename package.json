@@ -34,9 +34,9 @@
   "scripts": {
     "format": "prettier --write .",
     "lint": "prettier --check . && nx run-many -t lint",
-    "build": "nx run-many -t build --exclude=*-playground",
+    "build": "nx run-many -t build --exclude=nextjs-playground,vite-playground",
     "postbuild": "node ./scripts/pack-packages.mjs",
-    "dev": "nx run-many -t dev --exclude=*-playground",
+    "dev": "nx run-many -t dev --exclude=nextjs-playground,vite-playground",
     "test": "cargo test && vitest run",
     "test:integrations": "nx integration-test internal-integrations",
     "test:ui": "pnpm nx test:ui tailwindcss",

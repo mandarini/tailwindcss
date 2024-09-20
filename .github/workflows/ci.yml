@@ -16,6 +16,16 @@ jobs:
       matrix:
         node-version: [20]
         runner: [ubuntu-latest, windows-latest, macos-14]
+        include:
+          - os: ubuntu-latest
+            rust-required: true
+            target: x86_64-unknown-linux-gnu
+          - os: windows-latest
+            rust-required: false
+            target: x86_64-pc-windows-msvc
+          - os: macos-14
+            rust-required: true
+            target: aarch64-apple-darwin
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
@@ -33,11 +43,21 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
-      # Nx Cloud start-ci-run
-      # - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
+      - name: Install dependencies
+        run: pnpm install --ignore-scripts --filter=!./playgrounds/*
 
-      # Cargo already skips downloading dependencies if they already exist
+      # Install Rust if needed
+      - name: Install Rust (Stable)
+        if: ${{ matrix.rust-required }}
+        run: rustup default stable
+
+      - name: Setup rust target
+        if: ${{ matrix.rust-required }}
+        run: rustup target add ${{ matrix.target }}
+
+      # Cache cargo if Rust is required
       - name: Cache cargo
+        if: ${{ matrix.rust-required }}
         uses: actions/cache@v4
         with:
           path: |
@@ -48,8 +68,9 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # Cache the `oxide` Rust build
+      # Cache the `oxide` Rust build if Rust is required
       - name: Cache oxide build
+        if: ${{ matrix.rust-required }}
         uses: actions/cache@v4
         with:
           path: |
@@ -59,8 +80,8 @@ jobs:
             ./crates/node/index.d.ts
           key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
-      - name: Install dependencies
-        run: pnpm install
+      # Nx Cloud start-ci-run
+      # - run: npx nx-cloud start-ci-run --distribute-on="3 linux-medium-js" --stop-agents-after="test:ui"
 
       - uses: nrwl/nx-set-shas@v4
         with:
@@ -73,6 +94,7 @@ jobs:
       - name: Lint
         run: npx nx affected --target=lint
         # Only lint on linux to avoid \r\n line ending errors
+
         if: matrix.runner == 'ubuntu-latest'
 
       # Playwright setup and tests

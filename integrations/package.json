@@ -9,5 +9,14 @@
     "dedent": "1.5.3",
     "fast-glob": "^3.3.2",
     "kill-port": "^2.0.1"
+  },
+  "nx": {
+    "targets": {
+      "integration-test": {
+        "dependsOn": [
+          "^build"
+        ]
+      }
+    }
   }
 }
