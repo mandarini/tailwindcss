@@ -14,7 +14,11 @@
     "targets": {
       "integration-test": {
         "dependsOn": [
-          "^build"
+          "^build",
+          {
+            "projects": "@tailwindcss/root",
+            "target": "build"
+          }
         ]
       }
     }

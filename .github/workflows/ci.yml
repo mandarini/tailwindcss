@@ -108,7 +108,7 @@ jobs:
 
       # Nx Affected command for tests
       - name: Run affected for tests
-        run: npx nx affected -t=test --parallel=3
+        run: npx nx build @tailwindcss/node && npx nx affected -t=test --parallel=3
 
       # # Nx Affected command for integration tests
       - name: Run affected for integration tests
