@@ -95,16 +95,12 @@ jobs:
         run: npx nx affected -t=postbuild
 
       - name: Run affected for lint
-        run: npx nx build @tailwindcss/node && npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
+        run: npx nx run-many -t build -p @tailwindcss/node,@tailwindcss/oxide && npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
         # Only lint on linux to avoid \r\n line ending errors
         if: matrix.runner == 'ubuntu-latest'
 
-      # Playwright setup and tests
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
       - name: Run affected for Playwright tests
-        run: npx nx affected -t=test:ui
+        run: npx playwright install --with-deps && npx nx affected -t=test:ui
 
       # Nx Affected command for tests
       - name: Run affected for tests
