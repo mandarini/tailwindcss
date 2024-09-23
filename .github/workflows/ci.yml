@@ -92,7 +92,7 @@ jobs:
         run: npx nx affected -t=build --parallel=3 --exclude=nextjs-playground,vite-playground,@tailwindcss/root
 
       - name: Run affected for postbuild except playgrounds
-        run: npx nx affected -t=postbuild --parallel=3 --exclude=nextjs-playground,vite-playground
+        run: npx nx affected -t=postbuild
 
       - name: Run affected for lint
         run: npx nx build @tailwindcss/node && npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
@@ -112,4 +112,4 @@ jobs:
 
       # # Nx Affected command for integration tests
       - name: Run affected for integration tests
-        run: npx nx affected --target=integration-test --parallel=3
+        run: npx nx affected -t=postbuild && npx nx affected --target=integration-test --parallel=3
