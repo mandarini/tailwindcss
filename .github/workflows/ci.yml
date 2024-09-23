@@ -6,6 +6,7 @@ on:
   pull_request:
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
@@ -15,12 +16,29 @@ jobs:
       matrix:
         node-version: [20]
         runner: [ubuntu-latest, windows-latest, macos-14]
+        include:
+          - os: ubuntu-latest
+            target: x86_64-unknown-linux-gnu
+            nx_ci_execution_env: linux
+          - os: windows-latest
+            target: x86_64-pc-windows-msvc
+            nx_ci_execution_env: windows
+          - os: macos-14
+            target: aarch64-apple-darwin
+            nx_ci_execution_env: macos
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
 
+    env:
+      NX_CI_EXECUTION_ID: ${{ matrix.nx_ci_execution_env }}-${{ github.run_id }}
+      NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: pnpm/action-setup@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
@@ -29,7 +47,24 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
-      # Cargo already skips downloading dependencies if they already exist
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Install Rust (Stable)
+        if: matrix.runner == 'windows-latest'
+        run: |
+          curl https://win.rustup.rs -sSf -o rustup-init.exe
+          ./rustup-init.exe -y --default-toolchain stable
+          echo "##vso[task.prependpath]C:\Users\runneradmin\.cargo\bin"
+
+      # Install Rust
+      - name: Install Rust (Stable)
+        run: rustup default stable
+
+      - name: Setup rust target
+        run: rustup target add ${{ matrix.target }}
+
+      # Cache cargo if Rust
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -52,30 +87,32 @@ jobs:
             ./crates/node/index.d.ts
           key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
-      - name: Install dependencies
-        run: pnpm install
+      # Nx Cloud start-ci-run
+      # - run: npx nx-cloud start-ci-run --distribute-on="3 my-linux-rust-large" --stop-agents-on-failure=false --stop-agents-after="integration-test"
 
-      - name: Build
-        run: pnpm run build
-        env:
-          CARGO_PROFILE_RELEASE_LTO: 'off'
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: 'lld-link'
+      - uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: 'next'
 
-      - name: Lint
-        run: pnpm run lint
+      # Nx Affected command build
+      - name: Run affected for build except playgrounds
+        run: npx nx affected -t=build --parallel=3 --exclude=nextjs-playground,vite-playground,@tailwindcss/root
+
+      - name: Run affected for postbuild except playgrounds
+        run: npx nx affected -t=postbuild
+
+      - name: Run affected for lint
+        run: npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
         # Only lint on linux to avoid \r\n line ending errors
         if: matrix.runner == 'ubuntu-latest'
 
-      - name: Test
-        run: pnpm run test
+      - name: Run affected for Playwright tests
+        run: npx playwright install --with-deps && npx nx affected -t=test:ui
 
-      - name: Integration Tests
-        run: pnpm run test:integrations
-        env:
-          GITHUB_WORKSPACE: ${{ github.workspace }}
+      # Nx Affected command for tests
+      - name: Run affected for tests
+        run: npx nx affected -t=test --parallel=3
 
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: npm run test:ui
+      # # Nx Affected command for integration tests
+      - name: Run affected for integration tests
+        run: npx nx affected --target=integration-test --parallel=3
