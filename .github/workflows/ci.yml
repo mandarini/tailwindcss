@@ -100,7 +100,7 @@ jobs:
         if: matrix.runner == 'ubuntu-latest'
 
       - name: Run affected for Playwright tests
-        run: npx playwright install --with-deps && npx nx affected -t=test:ui
+        run: npx nx run-many -t build -p @tailwindcss/node,@tailwindcss/oxide && npx playwright install --with-deps && npx nx affected -t=test:ui
 
       # Nx Affected command for tests
       - name: Run affected for tests
