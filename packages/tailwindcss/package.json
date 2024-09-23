@@ -98,6 +98,14 @@
           {
             "projects": "internal-postcss-fix-relative-paths",
             "target": "build"
+          },
+          {
+            "projects": "@tailwindcss/node",
+            "target": "build"
+          },
+          {
+            "projects": "@tailwindcss/oxide",
+            "target": "build"
           }
         ]
       }
