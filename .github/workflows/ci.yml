@@ -95,7 +95,7 @@ jobs:
         run: npx nx affected -t=postbuild
 
       - name: Run affected for lint
-        run: npx nx affected -t=build -p @tailwindcss/node,@tailwindcss/oxide && npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
+        run: npx nx run-many -t=build -p @tailwindcss/node,@tailwindcss/oxide && npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
         # Only lint on linux to avoid \r\n line ending errors
         if: matrix.runner == 'ubuntu-latest'
 
@@ -104,8 +104,8 @@ jobs:
 
       # Nx Affected command for tests
       - name: Run affected for tests
-        run: npx nx affected -t=build -p @tailwindcss/node && npx nx affected -t=test --parallel=3
+        run: npx nx run-many -t=build -p @tailwindcss/node && npx nx affected -t=test --parallel=3
 
       # # Nx Affected command for integration tests
       - name: Run affected for integration tests
-        run: npx nx affected -t=build -p @tailwindcss/standalone && npx nx affected -t=postbuild && npx nx affected --target=integration-test --parallel=3
+        run: npx nx run-many -t=build -p @tailwindcss/standalone && npx nx affected -t=postbuild && npx nx affected -t=integration-test --parallel=3
