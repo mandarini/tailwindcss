@@ -57,7 +57,6 @@ jobs:
           ./rustup-init.exe -y --default-toolchain stable
           echo "##vso[task.prependpath]C:\Users\runneradmin\.cargo\bin"
 
-
       # Install Rust
       - name: Install Rust (Stable)
         run: rustup default stable
