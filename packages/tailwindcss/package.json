@@ -92,6 +92,10 @@
     "lightningcss": "catalog:"
   },
   "nx": {
+    "implicitDependencies": [
+      "@tailwindcss/node",
+      "@tailwindcss/oxide"
+    ],
     "targets": {
       "build": {
         "dependsOn": [

@@ -8,7 +8,7 @@
     },
     "lint": {
       "cache": true,
-      "dependsOn": ["^build"]
+      "dependsOn": ["build", "^build", "!nextjs-playground:build", "!vite-playground:build"]
     },
     "test:ui": {
       "cache": true
