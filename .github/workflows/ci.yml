@@ -81,7 +81,7 @@ jobs:
           key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
       # Nx Cloud start-ci-run
-      - run: npx nx-cloud start-ci-run --distribute-on="3 my-linux-rust-large" --stop-agents-after="integration-test"
+      - run: npx nx-cloud start-ci-run --distribute-on="3 my-linux-rust-large" --stop-agents-on-failure=false --stop-agents-after="integration-test"
 
       - uses: nrwl/nx-set-shas@v4
         with:
