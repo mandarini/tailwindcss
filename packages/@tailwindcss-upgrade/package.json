@@ -41,6 +41,8 @@
     "dedent": "1.5.3"
   },
   "nx": {
-    "implicitDependencies": ["@tailwindcss/node"]
+    "implicitDependencies": [
+      "@tailwindcss/node"
+    ]
   }
 }

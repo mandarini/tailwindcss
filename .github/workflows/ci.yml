@@ -92,10 +92,10 @@ jobs:
         run: npx nx affected -t=build --parallel=3 --exclude=nextjs-playground,vite-playground,@tailwindcss/root
 
       - name: Run affected for postbuild except playgrounds
-        run: npx nx affected -t=postbuild --parallel=3 --exclude=nextjs-playground,vite-playground,@tailwindcss/root
+        run: npx nx affected -t=postbuild --parallel=3 --exclude=nextjs-playground,vite-playground
 
       - name: Run affected for lint
-        run: prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
+        run: npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
         # Only lint on linux to avoid \r\n line ending errors
         if: matrix.runner == 'ubuntu-latest'
 
