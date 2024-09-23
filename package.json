@@ -33,9 +33,9 @@
   },
   "scripts": {
     "format": "prettier --write .",
-    "postbuild": "node ./scripts/pack-packages.mjs",
+    "postbuild": "nx exec -- node ./scripts/pack-packages.mjs",
     "dev": "nx run-many -t dev --exclude nextjs-playground,vite-playground",
-    "test": "cargo test && vitest run",
+    "test": "nx exec -- cargo test && vitest run",
     "tdd": "vitest",
     "bench": "vitest bench",
     "version-packages": "node ./scripts/version-packages.mjs",

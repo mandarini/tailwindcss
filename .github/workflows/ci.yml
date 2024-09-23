@@ -33,7 +33,7 @@ jobs:
     env:
       NX_CI_EXECUTION_ID: ${{ matrix.nx_ci_execution_env }}-${{ github.run_id }}
       NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
-      
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -90,7 +90,7 @@ jobs:
       # Nx Affected command build
       - name: Run affected for build except playgrounds
         run: npx nx affected -t=build --parallel=3 --exclude=nextjs-playground,vite-playground
-      
+
       - name: Run affected for postbuild except playgrounds
         run: npx nx affected -t=postbuild --parallel=3 --exclude=nextjs-playground,vite-playground
 
