@@ -50,6 +50,14 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install Rust (Stable)
+        if: matrix.runner == 'windows-latest'
+        run: |
+          curl https://win.rustup.rs -sSf -o rustup-init.exe
+          ./rustup-init.exe -y --default-toolchain stable
+          echo "##vso[task.prependpath]C:\Users\runneradmin\.cargo\bin"
+
+
       # Install Rust
       - name: Install Rust (Stable)
         run: rustup default stable
@@ -81,7 +89,7 @@ jobs:
           key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
       # Nx Cloud start-ci-run
-      - run: npx nx-cloud start-ci-run --distribute-on="3 my-linux-rust-large" --stop-agents-on-failure=false --stop-agents-after="integration-test"
+      # - run: npx nx-cloud start-ci-run --distribute-on="3 my-linux-rust-large" --stop-agents-on-failure=false --stop-agents-after="integration-test"
 
       - uses: nrwl/nx-set-shas@v4
         with:
@@ -95,17 +103,17 @@ jobs:
         run: npx nx affected -t=postbuild
 
       - name: Run affected for lint
-        run: npx nx run-many -t=build -p @tailwindcss/node,@tailwindcss/oxide && npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
+        run: npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
         # Only lint on linux to avoid \r\n line ending errors
         if: matrix.runner == 'ubuntu-latest'
 
-      # - name: Run affected for Playwright tests
-      #   run: npx nx affected -t=build -p @tailwindcss/node,@tailwindcss/oxide && npx playwright install --with-deps && npx nx affected -t=test:ui
+      - name: Run affected for Playwright tests
+        run: npx playwright install --with-deps && npx nx affected -t=test:ui
 
       # Nx Affected command for tests
       - name: Run affected for tests
-        run: npx nx run-many -t=build -p @tailwindcss/node && npx nx affected -t=test --parallel=3
+        run: npx nx affected -t=test --parallel=3
 
       # # Nx Affected command for integration tests
       - name: Run affected for integration tests
-        run: npx nx run-many -t=build -p @tailwindcss/standalone && npx nx affected -t=postbuild && npx nx affected -t=integration-test --parallel=3
+        run: npx nx affected --target=integration-test --parallel=3
