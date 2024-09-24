@@ -18,14 +18,16 @@ jobs:
         runner: [ubuntu-latest, windows-latest, macos-14]
         include:
           - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
             nx_ci_execution_env: linux
+            nx_ci_validation_tasks: lint,test,test:ui,integration-test
+            # target: x86_64-unknown-linux-gnu
           - os: windows-latest
-            target: x86_64-pc-windows-msvc
             nx_ci_execution_env: windows
+            nx_ci_validation_tasks: test,test:ui,integration-test
+            # target: x86_64-pc-windows-msvc
           - os: macos-14
-            target: aarch64-apple-darwin
             nx_ci_execution_env: macos
+            nx_ci_validation_tasks: test,test:ui,integration-test
 
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 30
@@ -59,63 +61,64 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      # TODO: cache this with nx
       # Cache the `oxide` Rust build
-      - name: Cache oxide build
-        uses: actions/cache@v4
-        with:
-          path: |
-            ./target/
-            ./crates/node/*.node
-            ./crates/node/index.js
-            ./crates/node/index.d.ts
-          key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
+      # - name: Cache oxide build
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ./target/
+      #       ./crates/node/*.node
+      #       ./crates/node/index.js
+      #       ./crates/node/index.d.ts
+      #     key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
       # Install Rust
       - name: Install Rust (Stable)
         run: rustup default stable
 
-      - name: Setup rust target
-        run: rustup target add ${{ matrix.target }}
+      # - name: Setup rust target
+      #   run: rustup target add ${{ matrix.target }}
 
       - name: Install dependencies
         run: pnpm install
-
-      # Nx Cloud start-ci-run using windows or linux agents accordingly
-      - run: npx nx-cloud start-ci-run --distribute-on="3 tailwind-${{ matrix.nx_ci_execution_env }}-rust" --stop-agents-on-failure=false --stop-agents-after="integration-test"
-        if: matrix.nx_ci_execution_env != 'macos'
-
-      # Nx Cloud does not support macOS agents yet, so we need to use local agents for now
-      - run: npx nx-cloud start-ci-run --stop-agents-on-failure=false --stop-agents-after="integration-test"
-        if: matrix.nx_ci_execution_env == 'macos'
 
       - uses: nrwl/nx-set-shas@v4
         with:
           main-branch-name: 'next'
 
+      - name: Format Check
+        run: npx nx-cloud record -- nx format:check
+        env:
+          NX_CLOUD_DISTRIBUTED_EXECUTION: false
+
+      # Nx Cloud start-ci-run using windows or linux agents accordingly
+      - if: matrix.nx_ci_execution_env != 'macos'
+        run: >
+          npx nx-cloud start-ci-run 
+          --distribute-on="3 tailwind-${{ matrix.nx_ci_execution_env }}-rust" 
+          --stop-agents-on-failure=false 
+          --stop-agents-after="integration-test"
+
+      # Nx Cloud does not support macOS agents yet, so we need to use local agents for now
+      - if: matrix.nx_ci_execution_env == 'macos'
+        run: >
+          npx nx-cloud start-ci-run 
+          --stop-agents-on-failure=false 
+          --stop-agents-after="integration-test"
+
       # Nx Affected command build
       - name: Run affected for build except playgrounds
-        run: npx nx affected -t=build --parallel=3 --exclude=nextjs-playground,vite-playground,@tailwindcss/root
+        run: npx nx affected -t=build --exclude=*playground*
 
       - name: Run affected for postbuild except playgrounds
         run: npx nx affected -t=postbuild
 
-      - name: Run affected for lint
-        run: npx nx run-many -t=build --projects@tailwindcss/node,@tailwindcss/oxide && npx prettier --check . && npx nx affected -t=lint --exclude nextjs-playground,vite-playground,@tailwindcss/root
-
-      - name: Run affected for Playwright tests
-        run: npx nx affected -t=build --projects@tailwindcss/node,@tailwindcss/oxide && npx playwright install --with-deps && npx nx affected -t=test:ui
-
-      # Nx Affected command for tests
-      - name: Run affected for tests
-        run: npx nx run-many -t=build --projects@tailwindcss/node && npx nx affected -t=test --parallel=3
-
-      # # Nx Affected command for integration tests
-      - name: Run affected for integration tests
-        run: npx nx run-many -t=build --projects@tailwindcss/standalone && npx nx affected -t=postbuild && npx nx affected -t=integration-test --parallel=3
-
+      - name: Run affected validation tasks
+        run: npx nx affected -t=${{ matrix.nx_ci_validation_tasks }} --exclude=*playground*
 
   macos-dte-agents:
-    name: MacOS DTE Agent
+    name: MacOS DTE Agent ${{ matrix.agent }}
     runs-on: macos-14
     timeout-minutes: 30
 
@@ -124,6 +127,7 @@ jobs:
       NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
 
     strategy:
+      fail-fast: false
       matrix:
         node-version: [20]
         agent: [1, 2, 3]
@@ -152,24 +156,24 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-      
-      # Cache the `oxide` Rust build
-      - name: Cache oxide build
-        uses: actions/cache@v4
-        with:
-          path: |
-            ./target/
-            ./crates/node/*.node
-            ./crates/node/index.js
-            ./crates/node/index.d.ts
-          key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
-      # Install Rust
+      # TODO: cache this with Nx cache
+      # Cache the `oxide` Rust build
+      # - name: Cache oxide build
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ./target/
+      #       ./crates/node/*.node
+      #       ./crates/node/index.js
+      #       ./crates/node/index.d.ts
+      #     key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
+
       - name: Install Rust (Stable)
         run: rustup default stable
 
-      - name: Setup rust target
-        run: rustup target add ${{ matrix.target }}
+      # - name: Setup rust target
+      #   run: rustup target add aarch64-apple-darwin
 
       - name: Install dependencies
         run: pnpm install

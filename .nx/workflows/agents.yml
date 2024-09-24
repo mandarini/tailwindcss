@@ -1,5 +1,5 @@
 launch-templates:
-  # Custom template name, the name is referenced via --distribute-on="3 my-linux-medium-js"
+  # Custom template name, the name is referenced via --distribute-on="3 tailwind-linux-rust"
   tailwind-linux-rust:
     resource-class: 'docker_linux_amd64/large'
     image: 'ubuntu22.04-node20.11-v9'
@@ -11,9 +11,14 @@ launch-templates:
         inputs:
           key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           paths: 'node_modules'
-          base-branch: 'main' # TODO: should this be next?
-      - name: Install Node Modules
-        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+          base-branch: 'next'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'next'
       - name: Install Rust
         script: |
           curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh -s -- -y
@@ -21,6 +26,10 @@ launch-templates:
           rustup toolchain install 1.70.0
           # persist cargo bin into PATH
           echo "PATH=$HOME/.cargo/bin:$PATH" >> $NX_CLOUD_ENV
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'
 
   tailwind-windows-rust:
     resource-class: 'windows/medium'
@@ -28,30 +37,19 @@ launch-templates:
     init-steps:
       - name: Checkout
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
-
       - name: Restore Node Modules Cache
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/cache/main.yaml'
         inputs:
           key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           paths: 'node_modules'
-          base-branch: 'main' # TODO: should this be next?
-
-      # TODO: Is this needed?
-      # - name: Restore Browser Binary Cache
-      #   uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/cache/main.yaml'
-      #   env:
-      #     KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
-      #     PATHS: |
-      #       '../.cache/ms-playwright'
-      #     BASE_BRANCH: 'main'
-
-      - name: Install Node Modules
-        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
-
-      # TODO: Is this needed?
-      # - name: Install Browsers (if needed)
-      #   uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'
-
+          base-branch: 'next'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'next'
       - name: Install Rust
         script: |
           curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh -s -- -y
@@ -59,3 +57,7 @@ launch-templates:
           rustup toolchain install 1.70.0
           # persist cargo bin into PATH
           echo "PATH=$HOME/.cargo/bin:$PATH" >> $NX_CLOUD_ENV
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'
