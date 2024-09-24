@@ -55,11 +55,11 @@ launch-templates:
         script: |
           Write-Host "Installing MSVC..."
           # Can we use winget here?
-          winget install --id=Microsoft.VisualStudio.2022.BuildTools  -e
-          # Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
+          # winget install --id=Microsoft.VisualStudio.2022.BuildTools  -e
+          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
           # # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --includeRecommended --passive --wait --norestart"
-          # Start-Process -Wait vs.exe -ArgumentList --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart"
-          # Remove-Item vs.exe
+          Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart"
+          Remove-Item vs.exe
 
       - name: Install Rust
         script: |
