@@ -62,7 +62,17 @@ launch-templates:
           cmd /c start /wait $exePath -y
           Remove-Item $exePath
 
-          Add-SessionPath "$env:USERPROFILE\.cargo\bin"
+          Write-Host "Path is:"
+          $env:Path
+          Write-Host "--------------"
+          $env:Path += ";$env:USERPROFILE\.cargo\bin"
+          Write-Host "Path is (with cargo added):"
+          $env:Path
+          Write-Host "--------------"
+
+          Write-Host "NX_CLOUD_ENV is:"
+          $env:NX_CLOUD_ENV
+          Write-Host "--------------"
 
           cargo --version
           rustup --version
