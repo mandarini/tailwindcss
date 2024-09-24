@@ -11,6 +11,7 @@ permissions:
 
 jobs:
   tests:
+    name: (${{ matrix.nx_ci_execution_env }}) DTE
     strategy:
       fail-fast: false
       matrix:
@@ -87,7 +88,9 @@ jobs:
         with:
           main-branch-name: 'next'
 
-      - name: Format Check
+      # We only run this on linux since there is no reason to check this multiple times
+      - if: matrix.nx_ci_execution_env == 'linux'
+        name: Format Check
         run: npx nx-cloud record -- nx format:check
         env:
           NX_CLOUD_DISTRIBUTED_EXECUTION: false
@@ -109,16 +112,16 @@ jobs:
 
       # Nx Affected command build
       - name: Run affected for build except playgrounds
-        run: npx nx affected -t=build --exclude=*playground*
+        run: npx nx affected -t=build --exclude=*playground*,@tailwindcss/root
 
       - name: Run affected for postbuild except playgrounds
         run: npx nx affected -t=postbuild
 
       - name: Run affected validation tasks
-        run: npx nx affected -t=${{ matrix.nx_ci_validation_tasks }} --exclude=*playground*
+        run: npx nx affected -t=${{ matrix.nx_ci_validation_tasks }} --exclude=*playground*,@tailwindcss/root
 
   macos-dte-agents:
-    name: MacOS DTE Agent ${{ matrix.agent }}
+    name: (macos) DTE Agent ${{ matrix.agent }}
     runs-on: macos-14
     timeout-minutes: 30
 
