@@ -69,16 +69,16 @@ jobs:
           cache: 'pnpm'
 
       # Cache cargo if Rust
-      - name: Cache cargo
-        uses: actions/cache@v4
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      # - name: Cache cargo
+      #   uses: actions/cache@v4
+      #   with:
+      #     path: |
+      #       ~/.cargo/bin/
+      #       ~/.cargo/registry/index/
+      #       ~/.cargo/registry/cache/
+      #       ~/.cargo/git/db/
+      #       target/
+      #     key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
       # TODO: cache this with nx
       # Cache the `oxide` Rust build
@@ -92,9 +92,10 @@ jobs:
       #       ./crates/node/index.d.ts
       #     key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
+      # TODO: do we actually need rust here?
       # Install Rust
-      - name: Install Rust (Stable)
-        run: rustup default stable
+      # - name: Install Rust (Stable)
+      #   run: rustup default stable
 
       # - name: Setup rust target
       #   run: rustup target add ${{ matrix.target }}
