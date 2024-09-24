@@ -152,6 +152,17 @@ jobs:
             ~/.cargo/git/db/
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      
+      # Cache the `oxide` Rust build
+      - name: Cache oxide build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ./target/
+            ./crates/node/*.node
+            ./crates/node/index.js
+            ./crates/node/index.d.ts
+          key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
 
       # Install Rust
       - name: Install Rust (Stable)
