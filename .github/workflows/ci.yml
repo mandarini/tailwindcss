@@ -50,7 +50,7 @@ jobs:
       # Nx Cloud start-ci-run using windows or linux agents accordingly
       - if: matrix.nx_ci_execution_env != 'macos'
         run: >
-          pnpm exec nx-cloud start-ci-run
+          pnpm dlx nx-cloud start-ci-run
           --distribute-on="3 tailwind-${{ matrix.nx_ci_execution_env }}-rust" 
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
@@ -58,7 +58,7 @@ jobs:
       # Nx Cloud does not support macOS agents yet, so we need to use local agents for now
       - if: matrix.nx_ci_execution_env == 'macos'
         run: >
-          pnpm exec nx-cloud start-ci-run
+          pnpm dlx nx-cloud start-ci-run
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
 
