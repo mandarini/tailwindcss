@@ -1,6 +1,6 @@
 launch-templates:
   # Custom template name, the name is referenced via --distribute-on="3 my-linux-medium-js"
-  my-linux-rust-large:
+  tailwind-linux-rust:
     resource-class: 'docker_linux_amd64/large'
     image: 'ubuntu22.04-node20.11-v9'
     init-steps:
@@ -11,9 +11,47 @@ launch-templates:
         inputs:
           key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
           paths: 'node_modules'
-          base-branch: 'main'
+          base-branch: 'main' # TODO: should this be next?
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Rust
+        script: |
+          curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh -s -- -y
+          source "$HOME/.cargo/env"
+          rustup toolchain install 1.70.0
+          # persist cargo bin into PATH
+          echo "PATH=$HOME/.cargo/bin:$PATH" >> $NX_CLOUD_ENV
+
+  tailwind-windows-rust:
+    resource-class: 'windows/medium'
+    image: 'windows-2022'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
+
+      - name: Restore Node Modules Cache
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/cache/main.yaml'
+        inputs:
+          key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+          paths: 'node_modules'
+          base-branch: 'main' # TODO: should this be next?
+
+      # TODO: Is this needed?
+      # - name: Restore Browser Binary Cache
+      #   uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/cache/main.yaml'
+      #   env:
+      #     KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+      #     PATHS: |
+      #       '../.cache/ms-playwright'
+      #     BASE_BRANCH: 'main'
+
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+
+      # TODO: Is this needed?
+      # - name: Install Browsers (if needed)
+      #   uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'
+
       - name: Install Rust
         script: |
           curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh -s -- -y
