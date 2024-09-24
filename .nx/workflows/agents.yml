@@ -52,7 +52,7 @@ launch-templates:
           BASE_BRANCH: 'next'
       - name: Install Rust
         script: |
-          Write-Host "Installing Rust..." -ForegroundColor Cyan
+          Write-Host "Installing Rust..."
           $exePath = "$env:TEMP\rustup-init.exe"
 
           Write-Host "Downloading..."
@@ -62,13 +62,13 @@ launch-templates:
           cmd /c start /wait $exePath -y
           Remove-Item $exePath
 
-          $env:Path = "$env:USERPROFILE\.cargo\bin"
+          Add-SessionPath "$env:USERPROFILE\.cargo\bin"
 
           cargo --version
           rustup --version
           rustc --version
 
-          Write-Host "Rust installed" -ForegroundColor Green
+          Write-Host "Rust installed"
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
       - name: Install Browsers (if needed)
