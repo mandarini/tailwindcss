@@ -96,20 +96,28 @@ launch-templates:
           rustc --version
 
       # Fix cross compilation issues with bun and tmp directories
-      # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
-      - name: Set GITHUB_WORKSPACE and BUN_INSTALL_CACHE_DIR variables
+      - name: Setup environment variables
         script: |
+          # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
           Add-Content -Path $env:NX_CLOUD_ENV -Value "GITHUB_WORKSPACE=C:\Workspace"
+
+          # Fix issue with cross-compiled binaries failing to copy into non existent home dir (C:\Users\Workflows)
           Add-Content -Path $env:NX_CLOUD_ENV -Value "BUN_INSTALL_CACHE_DIR=C:\Workspace\.bun\install\cache"
+
+          # TODO: when we switch back to MSVC, bring tuning options from recent changes 
+          # see: https://github.com/tailwindlabs/tailwindcss/pull/14485
+          #
+          # CARGO_PROFILE_RELEASE_LTO: 'off'
+          # CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: 'lld-link'
+
           Write-Host "CWD is:"
           Get-Location
 
-      - name: Log NX_CLOUD_ENV
-        script: |
-          Write-Host "NX_CLOUD_ENV (with path) is:"
+          Write-Host "NX_CLOUD_ENV is:"
           Get-Content -Path $env:NX_CLOUD_ENV
 
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+
       - name: Install Browsers (if needed)
         uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'

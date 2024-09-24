@@ -22,16 +22,16 @@ jobs:
         include:
           - os: ubuntu-latest
             nx_ci_execution_env: linux
-            nx_ci_validation_tasks: lint,test,test:ui,integration-test
+            nx_ci_validation_targets: lint,test,test:ui,integration-test
             # target: x86_64-unknown-linux-gnu
           - os: windows-latest
             nx_ci_execution_env: windows
-            nx_ci_validation_tasks: test,test:ui,integration-test
+            nx_ci_validation_targets: test,test:ui,integration-test
             # target: x86_64-pc-windows-msvc
           # TODO: re-enable once windows is working
           # - os: macos-14
           #   nx_ci_execution_env: macos
-          #   nx_ci_validation_tasks: test,test:ui,integration-test
+          #   nx_ci_validation_targets: test,test:ui,integration-test
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -116,13 +116,13 @@ jobs:
 
       # Nx Affected command build
       - name: Run affected for build except playgrounds
-        run: npx nx affected -t=build --exclude=*playground*,@tailwindcss/root
+        run: npx nx affected -t=build --exclude="*playground*,@tailwindcss/root"
 
       - name: Run affected for postbuild except playgrounds
         run: npx nx affected -t=postbuild
 
       - name: Run affected validation tasks
-        run: npx nx affected -t=${{ matrix.nx_ci_validation_tasks }} --exclude=*playground*,@tailwindcss/root
+        run: npx nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*,@tailwindcss/root"
 
   # TODO: reenable once windows is working
   # macos-dte-agents:
