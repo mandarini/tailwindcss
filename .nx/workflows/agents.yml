@@ -97,11 +97,12 @@ launch-templates:
 
       # Fix cross compilation issues with bun and tmp directories
       # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
-      - name: Set GITHUB_WORKSPACE env var
+      - name: Set GITHUB_WORKSPACE and BUN_INSTALL_CACHE_DIR variables
         script: |
-          Write-Host "Adding PSScriptRoot to NX_CLOUD_ENV:"
-          Echo $PSScriptRoot
-          Add-Content -Path $env:NX_CLOUD_ENV -Value "GITHUB_WORKSPACE=$PSScriptRoot"
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "GITHUB_WORKSPACE=C:\Workspace"
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "BUN_INSTALL_CACHE_DIR=C:\Workspace\.bun\install\cache"
+          Write-Host "CWD is:"
+          Get-Location
 
       - name: Log NX_CLOUD_ENV
         script: |
