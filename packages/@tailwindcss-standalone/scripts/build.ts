@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url'
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url))
 
+process.env.BUN_INSTALL_CACHE_DIR = path.resolve(__dirname, '../node_modules/.bun-cache')
+
 async function buildForPlatform(triple: string, outfile: string) {
   // We wrap this in a retry because occasionally the atomic rename fails for some reason
   for (let i = 0; i < 5; ++i) {
