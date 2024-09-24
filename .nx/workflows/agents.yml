@@ -50,55 +50,76 @@ launch-templates:
           PATHS: |
             '../.cache/ms-playwright'
           BASE_BRANCH: 'next'
+      - name: Install MSVC
+        script: |
+          Write-Host "Installing MSVC..."
+          choco install visualstudio2022buildtools
+          # Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
+          # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --includeRecommended --passive --wait --norestart"
+          # Remove-Item vs.exe
+
       - name: Install Rust
         script: |
-          Write-Host "Installing Rust..."
-          $exePath = "$env:TEMP\rustup-init.exe"
+          Write-Host "Installing Rustup..."
+          choco install rustup.install
 
-          #
-          # TODO: is there any reason why we should not use the gnu compiler?
-          #
-          # The mvsc linker requires visual studio code dev tools and installation 
-          # seems non trivial in a CI environment. Maybe we could bake this into the 
-          # image?
-          #
-          # see: https://gist.github.com/mmozeiko/7f3162ec2988e81e56d5c4e22cde9977
-          #
-          Write-Host "Downloading..."
-          (New-Object Net.WebClient).DownloadFile('https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-gnu/rustup-init.exe', $exePath)
+          Write-Host "Installing toolchain..."
+          rustup toolchain install stable-x86_64-pc-windows-msvc
 
-          Write-Host "Installing..."
-          cmd /c start /wait $exePath -y
-          Remove-Item $exePath
-
-          Write-Host "Path is:"
-          $env:Path
-          Write-Host "--------------"
-          $env:Path += ";$env:USERPROFILE\.cargo\bin"
-          Write-Host "Path is (with cargo added):"
-          $env:Path
-          Write-Host "--------------"
-
-          Write-Host "NX_CLOUD_ENV is:"
-          Get-Content -Path $env:NX_CLOUD_ENV
-          Write-Host "--------------"
-
-          Add-Content -Path $env:NX_CLOUD_ENV -Value "PATH=$env:Path"
-
-          Write-Host "NX_CLOUD_ENV (with path) is:"
-          Get-Content -Path $env:NX_CLOUD_ENV
-          Write-Host "--------------"
-
-          # TODO: remove if gnu rustup-init works
-          # Write-Host "Installing toolchain..."
-          # rustup toolchain install stable-x86_64-pc-windows-gnu
-          # rustup default stable-x86_64-pc-windows-gnu
-
+          Write-Host "Installing versions..."
           cargo --version
           rustup --version
           rustc --version
 
-          Write-Host "Rust installed"
+      # - name: Install Rust
+      #   script: |
+      #     Write-Host "Installing Rust..."
+      #     $exePath = "$env:TEMP\rustup-init.exe"
+
+      #     #
+      #     # TODO: is there any reason why we should not use the gnu compiler?
+      #     #
+      #     # The mvsc linker requires visual studio code dev tools and installation
+      #     # seems non trivial in a CI environment. Maybe we could bake this into the
+      #     # image?
+      #     #
+      #     # see: https://gist.github.com/mmozeiko/7f3162ec2988e81e56d5c4e22cde9977
+      #     #
+      #     Write-Host "Downloading..."
+      #     (New-Object Net.WebClient).DownloadFile('https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-mvsc/rustup-init.exe', $exePath)
+
+      #     Write-Host "Installing..."
+      #     cmd /c start /wait $exePath -y
+      #     Remove-Item $exePath
+
+      #     Write-Host "Path is:"
+      #     $env:Path
+      #     Write-Host "--------------"
+      #     $env:Path += ";$env:USERPROFILE\.cargo\bin"
+      #     Write-Host "Path is (with cargo added):"
+      #     $env:Path
+      #     Write-Host "--------------"
+
+      #     Write-Host "NX_CLOUD_ENV is:"
+      #     Get-Content -Path $env:NX_CLOUD_ENV
+      #     Write-Host "--------------"
+
+      #     Add-Content -Path $env:NX_CLOUD_ENV -Value "PATH=$env:Path"
+
+      #     Write-Host "NX_CLOUD_ENV (with path) is:"
+      #     Get-Content -Path $env:NX_CLOUD_ENV
+      #     Write-Host "--------------"
+
+      #     # TODO: remove if gnu rustup-init works
+      #     # Write-Host "Installing toolchain..."
+      #     # rustup toolchain install stable-x86_64-pc-windows-gnu
+      #     # rustup default stable-x86_64-pc-windows-gnu
+
+      #     cargo --version
+      #     rustup --version
+      #     rustc --version
+
+      #     Write-Host "Rust installed"
 
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
