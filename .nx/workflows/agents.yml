@@ -51,6 +51,7 @@ launch-templates:
             '../.cache/ms-playwright'
           BASE_BRANCH: 'next'
 
+      # TODO: add "Build Tools for Visual Studio ... with the Visual C++ option" to base windows image
       # - name: Install MSVC
       #   script: |
       #     Write-Host "Installing MSVC..."
@@ -94,13 +95,22 @@ launch-templates:
 
           Add-Content -Path $env:NX_CLOUD_ENV -Value "PATH=$env:Path"
 
+          Write-Host "PSScriptRoot is:"
+          Echo $PSScriptRoot
+
+          # Fix cross compilation issues with bun and tmp directories
+          # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "GITHUB_WORKSPACE=$PSScriptRoot"
+
           Write-Host "NX_CLOUD_ENV (with path) is:"
           Get-Content -Path $env:NX_CLOUD_ENV
           Write-Host "--------------"
 
+          # TODO: use msvc instead of gnu once base image updated
           Write-Host "Installing toolchain..."
-          rustup toolchain install stable-x86_64-pc-windows-gnu
+          # rustup toolchain install stable-x86_64-pc-windows-gnu
           rustup set default-host x86_64-pc-windows-gnu
+          # rustup default stable-x86_64-pc-windows-gnu
           rustup show
 
           Write-Host "Rust installed"
