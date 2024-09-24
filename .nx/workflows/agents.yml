@@ -74,6 +74,12 @@ launch-templates:
           Get-Content -Path $env:NX_CLOUD_ENV
           Write-Host "--------------"
 
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "PATH=$env:Path"
+
+          Write-Host "NX_CLOUD_ENV (with path) is:"
+          Get-Content -Path $env:NX_CLOUD_ENV
+          Write-Host "--------------"
+
           cargo --version
           rustup --version
           rustc --version
