@@ -81,44 +81,32 @@ launch-templates:
           cmd /c start /wait $exePath -y
           Remove-Item $exePath
 
-          Write-Host "Path is:"
-          $env:Path
-          Write-Host "--------------"
+          Write-Host "Adding cargo to PATH and NX_CLOUD_ENV is:"
           $env:Path += ";$env:USERPROFILE\.cargo\bin"
-          Write-Host "Path is (with cargo added):"
-          $env:Path
-          Write-Host "--------------"
-
-          Write-Host "NX_CLOUD_ENV is:"
-          Get-Content -Path $env:NX_CLOUD_ENV
-          Write-Host "--------------"
-
           Add-Content -Path $env:NX_CLOUD_ENV -Value "PATH=$env:Path"
-
-          Write-Host "PSScriptRoot is:"
-          Echo $PSScriptRoot
-
-          # Fix cross compilation issues with bun and tmp directories
-          # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
-          Add-Content -Path $env:NX_CLOUD_ENV -Value "GITHUB_WORKSPACE=$PSScriptRoot"
-
-          Write-Host "NX_CLOUD_ENV (with path) is:"
-          Get-Content -Path $env:NX_CLOUD_ENV
-          Write-Host "--------------"
 
           # TODO: use msvc instead of gnu once base image updated
           Write-Host "Installing toolchain..."
-          # rustup toolchain install stable-x86_64-pc-windows-gnu
           rustup set default-host x86_64-pc-windows-gnu
-          # rustup default stable-x86_64-pc-windows-gnu
+
+          Write-Host "Rust installed:"
           rustup show
-
-          Write-Host "Rust installed"
-
           cargo --version
           rustup --version
           rustc --version
 
+      # Fix cross compilation issues with bun and tmp directories
+      # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
+      - name: Set GITHUB_WORKSPACE env var
+        script: |
+          Write-Host "Adding PSScriptRoot to NX_CLOUD_ENV:"
+          Echo $PSScriptRoot
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "GITHUB_WORKSPACE=$PSScriptRoot"
+
+      - name: Log NX_CLOUD_ENV
+        script: |
+          Write-Host "NX_CLOUD_ENV (with path) is:"
+          Get-Content -Path $env:NX_CLOUD_ENV
 
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
