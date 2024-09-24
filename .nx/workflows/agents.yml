@@ -23,7 +23,7 @@ launch-templates:
         script: |
           curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh -s -- -y
           source "$HOME/.cargo/env"
-          rustup toolchain install 1.70.0
+          rustup toolchain install stable
           # persist cargo bin into PATH
           echo "PATH=$HOME/.cargo/bin:$PATH" >> $NX_CLOUD_ENV
       - name: Install Node Modules
@@ -80,14 +80,18 @@ launch-templates:
           Get-Content -Path $env:NX_CLOUD_ENV
           Write-Host "--------------"
 
+          # TODO: is there an alternative here?
+          # installing mvsc linker seems non trivial
+          # see: https://gist.github.com/mmozeiko/7f3162ec2988e81e56d5c4e22cde9977
+          Write-Host "Installing toolchain..."
+          rustup toolchain install stable-x86_64-pc-windows-gnu
+          rustup default stable-x86_64-pc-windows-gnu
+
           cargo --version
           rustup --version
           rustc --version
 
           Write-Host "Rust installed"
-
-          Write-Host "Installing toolchain..."
-          rustup toolchain install 1.70.0
 
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
