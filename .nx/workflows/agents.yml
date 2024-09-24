@@ -51,19 +51,23 @@ launch-templates:
             '../.cache/ms-playwright'
           BASE_BRANCH: 'next'
 
-      # - name: Install MSVC
-      #   script: |
-      #     Write-Host "Installing MSVC..."
-      #     # Can we use winget here?
-      #     # winget install --id=Microsoft.VisualStudio.2022.BuildTools  -e
+      - name: Install MSVC
+        script: |
+          Write-Host "Installing MSVC..."
 
-      #     (New-Object Net.WebClient).DownloadFile('https://aka.ms/vs/17/release/vs_community.exe', 'vs.exe')
-      #     cmd /c start /wait vs.exe --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart
-      #     Remove-Item vs.exe
 
-      #     # Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
-      #     # # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --includeRecommended --passive --wait --norestart"
-      #     # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart"
+          (New-Object Net.WebClient).DownloadFile('https://aka.ms/vs/17/release/vs_community.exe', 'vs.exe')
+          cmd /c start /wait vs.exe --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart
+          Remove-Item vs.exe
+
+          # Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
+          # # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --includeRecommended --passive --wait --norestart"
+          # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart"
+
+          # Can we use winget here?
+          # winget install --id=Microsoft.VisualStudio.2022.BuildTools  -e
+
+          Write-Host "MSVC installed"
 
       - name: Install Rust
         script: |
@@ -98,11 +102,11 @@ launch-templates:
           Write-Host "Installing toolchain..."
           rustup toolchain install stable-x86_64-pc-windows-msvc
 
+          Write-Host "Rust installed"
+
           cargo --version
           rustup --version
           rustc --version
-
-          Write-Host "Rust installed"
 
       - name: Install Node Modules
         uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
