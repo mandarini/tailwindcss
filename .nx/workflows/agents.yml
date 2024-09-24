@@ -71,7 +71,7 @@ launch-templates:
           Write-Host "--------------"
 
           Write-Host "NX_CLOUD_ENV is:"
-          Get-Content $NX_CLOUD_ENV
+          Get-Content -Path $env:NX_CLOUD_ENV
           Write-Host "--------------"
 
           cargo --version

@@ -47,16 +47,10 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: 'pnpm'
-
       # Nx Cloud start-ci-run using windows or linux agents accordingly
       - if: matrix.nx_ci_execution_env != 'macos'
         run: >
-          npx nx-cloud start-ci-run
+          pnpm exec nx-cloud start-ci-run
           --distribute-on="3 tailwind-${{ matrix.nx_ci_execution_env }}-rust" 
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
@@ -64,9 +58,15 @@ jobs:
       # Nx Cloud does not support macOS agents yet, so we need to use local agents for now
       - if: matrix.nx_ci_execution_env == 'macos'
         run: >
-          npx nx-cloud start-ci-run
+          pnpm exec nx-cloud start-ci-run
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
       # Cache cargo if Rust
       - name: Cache cargo
