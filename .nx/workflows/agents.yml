@@ -56,10 +56,14 @@ launch-templates:
           Write-Host "Installing MSVC..."
           # Can we use winget here?
           # winget install --id=Microsoft.VisualStudio.2022.BuildTools  -e
-          Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
-          # # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --includeRecommended --passive --wait --norestart"
-          Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart"
+
+          (New-Object Net.WebClient).DownloadFile('https://aka.ms/vs/17/release/vs_community.exe', 'vs.exe')
+          cmd /c start /wait vs.exe --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart
           Remove-Item vs.exe
+
+          # Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
+          # # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --includeRecommended --passive --wait --norestart"
+          # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart"
 
       - name: Install Rust
         script: |
@@ -67,7 +71,7 @@ launch-templates:
           $exePath = "$env:TEMP\rustup-init.exe"
 
           Write-Host "Downloading..."
-          (New-Object Net.WebClient).DownloadFile('https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-mvsc/rustup-init.exe', $exePath)
+          (New-Object Net.WebClient).DownloadFile('https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe', $exePath)
 
           Write-Host "Installing..."
           cmd /c start /wait $exePath -y
