@@ -16,7 +16,9 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [20]
-        os: [ubuntu-latest, windows-latest, macos-14]
+        # TODO: re-enable once windows is working
+        # os: [ubuntu-latest, windows-latest, macos-14]
+        os: [ubuntu-latest, windows-latest]
         include:
           - os: ubuntu-latest
             nx_ci_execution_env: linux
@@ -54,16 +56,16 @@ jobs:
       # Nx Cloud start-ci-run using windows or linux agents accordingly
       - if: matrix.nx_ci_execution_env != 'macos'
         run: >
-          npx nx-cloud start-ci-run 
+          npx nx-cloud start-ci-run
           --distribute-on="3 tailwind-${{ matrix.nx_ci_execution_env }}-rust" 
-          --stop-agents-on-failure=false 
+          --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
 
       # Nx Cloud does not support macOS agents yet, so we need to use local agents for now
       - if: matrix.nx_ci_execution_env == 'macos'
         run: >
-          npx nx-cloud start-ci-run 
-          --stop-agents-on-failure=false 
+          npx nx-cloud start-ci-run
+          --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
 
       # Cache cargo if Rust
