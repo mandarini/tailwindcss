@@ -55,8 +55,17 @@ launch-templates:
           Write-Host "Installing Rust..."
           $exePath = "$env:TEMP\rustup-init.exe"
 
+          #
+          # TODO: is there any reason why we should not use the gnu compiler?
+          #
+          # The mvsc linker requires visual studio code dev tools and installation 
+          # seems non trivial in a CI environment. Maybe we could bake this into the 
+          # image?
+          #
+          # see: https://gist.github.com/mmozeiko/7f3162ec2988e81e56d5c4e22cde9977
+          #
           Write-Host "Downloading..."
-          (New-Object Net.WebClient).DownloadFile('https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe', $exePath)
+          (New-Object Net.WebClient).DownloadFile('https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-gnu/rustup-init.exe', $exePath)
 
           Write-Host "Installing..."
           cmd /c start /wait $exePath -y
@@ -80,12 +89,10 @@ launch-templates:
           Get-Content -Path $env:NX_CLOUD_ENV
           Write-Host "--------------"
 
-          # TODO: is there an alternative here?
-          # installing mvsc linker seems non trivial
-          # see: https://gist.github.com/mmozeiko/7f3162ec2988e81e56d5c4e22cde9977
-          Write-Host "Installing toolchain..."
-          rustup toolchain install stable-x86_64-pc-windows-gnu
-          rustup default stable-x86_64-pc-windows-gnu
+          # TODO: remove if gnu rustup-init works
+          # Write-Host "Installing toolchain..."
+          # rustup toolchain install stable-x86_64-pc-windows-gnu
+          # rustup default stable-x86_64-pc-windows-gnu
 
           cargo --version
           rustup --version
