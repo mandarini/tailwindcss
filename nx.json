@@ -1,5 +1,6 @@
 {
   "$schema": "./node_modules/nx/schemas/nx-schema.json",
+
   "targetDefaults": {
     "build": {
       "dependsOn": ["^build"],
@@ -30,5 +31,6 @@
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"],
     "default": ["sharedGlobals"]
   },
+  "bust": 1, 
   "nxCloudUrl": "https://staging.nx.app"
 }
