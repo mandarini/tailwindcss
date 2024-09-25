@@ -32,7 +32,7 @@
     ]
   },
   "scripts": {
-    "format": "prettier --write .",
+    "format": "nx format",
     "lint": "nx run-many -t lint --exclude nextjs-playground,vite-playground,@tailwindcss/root",
     "postbuild": "nx exec -- node ./scripts/pack-packages.mjs",
     "build": "nx run-many -t build --exclude nextjs-playground,vite-playground,@tailwindcss/root",

@@ -31,6 +31,6 @@
     "sharedGlobals": ["{workspaceRoot}/.github/workflows/ci.yml"],
     "default": ["sharedGlobals"]
   },
-  "bust": 1, 
+  "bust": 1,
   "nxCloudUrl": "https://staging.nx.app"
 }
