@@ -104,6 +104,15 @@
             "target": "build"
           }
         ]
+      },
+      "test:ui": {
+        "dependsOn": [
+          "^build",
+          {
+            "projects": "@tailwindcss/root",
+            "target": "build"
+          }
+        ]
       }
     }
   }

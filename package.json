@@ -33,7 +33,7 @@
   },
   "scripts": {
     "format": "nx format",
-    "lint": "nx run-many -t lint --exclude nextjs-playground,vite-playground,@tailwindcss/root",
+    "lint-all": "nx run-many -t lint --exclude nextjs-playground,vite-playground,@tailwindcss/root",
     "build": "nx exec -- node ./scripts/pack-packages.mjs",
     "dev": "nx run-many -t dev --exclude nextjs-playground,vite-playground",
     "test": "nx exec -- cargo test && vitest run",
@@ -68,7 +68,9 @@
   "nx": {
     "implicitDependencies": [
       "*",
-      "!*playground*"
+      "!*playground*",
+      "!internal-integrations",
+      "!tailwindcss"
     ]
   }
 }
