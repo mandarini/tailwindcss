@@ -104,11 +104,11 @@ launch-templates:
           # Fix issue with cross-compiled binaries failing to copy into non existent home dir (C:\Users\Workflows)
           Add-Content -Path $env:NX_CLOUD_ENV -Value "BUN_INSTALL_CACHE_DIR=C:\Workspace\.bun\install\cache"
 
-          # TODO: when we switch back to MSVC, bring tuning options from recent changes 
-          # see: https://github.com/tailwindlabs/tailwindcss/pull/14485
-          #
-          # CARGO_PROFILE_RELEASE_LTO: 'off'
-          # CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: 'lld-link'
+          # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "CARGO_PROFILE_RELEASE_LTO=off"
+          # TODO: if we stay on gnu, is there an equivalent to lld-link?
+          # Note MSVC_LINKER will have no effect on gnu builds
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER=lld-link"
 
           Write-Host "CWD is:"
           Get-Location

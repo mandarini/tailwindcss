@@ -115,14 +115,14 @@ jobs:
           NX_CLOUD_DISTRIBUTED_EXECUTION: false
 
       # Nx Affected command build
-      - name: Run affected for build except playgrounds
-        run: npx nx affected -t=build --exclude="*playground*,@tailwindcss/root"
+      - name: Run affected build
+        run: npx nx affected -t=build --exclude="*playground*"
 
-      - name: Run affected for postbuild except playgrounds
-        run: npx nx affected -t=postbuild
+      # - name: Run affected for postbuild except playgrounds
+      #   run: npx nx affected -t=postbuild
 
       - name: Run affected validation tasks
-        run: npx nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*,@tailwindcss/root"
+        run: npx nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
 
   # TODO: reenable once windows is working
   # macos-dte-agents:
