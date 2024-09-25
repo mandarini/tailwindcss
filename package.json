@@ -71,6 +71,13 @@
       "!*playground*",
       "!internal-integrations",
       "!tailwindcss"
-    ]
+    ],
+    "targets": {
+      "test": {
+        "dependsOn": [
+          "build"
+        ]
+      }
+    }
   }
 }
