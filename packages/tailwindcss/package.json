@@ -113,6 +113,11 @@
             "target": "build"
           }
         ]
+      },
+      "test": {
+        "dependsOn": [
+          "build"
+        ]
       }
     }
   }

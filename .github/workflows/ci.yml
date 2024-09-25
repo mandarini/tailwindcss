@@ -31,7 +31,7 @@ jobs:
           # TODO: re-enable once windows is working
           # - os: macos-14
           #   nx_ci_execution_env: macos
-          #   nx_ci_validation_targets: test,test:ui,integration-test
+          #   nx_ci_validation_targets: build,test,test:ui,integration-test
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
