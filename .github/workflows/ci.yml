@@ -99,9 +99,9 @@ jobs:
           run_command "NX_CLOUD_DISTRIBUTED_EXECUTION=false pnpm exec nx-cloud record -- nx format:check"
 
           # list of commands to be distributed to different execution envs
-          run_command "NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude="*playground*"
-          run_command "NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
-          run_command "NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
+          run_command "NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude=\"*playground*\""
+          run_command "NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
+          run_command "NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
 
           # wait for all background processes to finish
           for pid in ${pids[*]}; do
