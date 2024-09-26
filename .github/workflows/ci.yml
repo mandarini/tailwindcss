@@ -16,22 +16,17 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [20]
-        # TODO: re-enable once windows is working
-        # os: [ubuntu-latest, windows-latest, macos-14]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-14]
         include:
           - os: ubuntu-latest
             nx_ci_execution_env: linux
             nx_ci_validation_targets: build,lint,test,test:ui,integration-test
-            # target: x86_64-unknown-linux-gnu
           - os: windows-latest
             nx_ci_execution_env: windows
             nx_ci_validation_targets: build,test,test:ui,integration-test
-            # target: x86_64-pc-windows-msvc
-          # TODO: re-enable once windows is working
-          # - os: macos-14
-          #   nx_ci_execution_env: macos
-          #   nx_ci_validation_targets: build,test,test:ui,integration-test
+          - os: macos-14
+            nx_ci_execution_env: macos
+            nx_ci_validation_targets: build,test,test:ui,integration-test
 
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
@@ -47,16 +42,17 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
-      # Nx Cloud start-ci-run using windows or linux agents accordingly
-      - if: matrix.nx_ci_execution_env != 'macos'
+      # For now, only run linux tasks on agents
+      # Mac is not supported, and windows requires 
+      # some more refinement to get working 
+      - if: matrix.nx_ci_execution_env == 'linux'
         run: >
           pnpm dlx nx-cloud start-ci-run
           --distribute-on="3 tailwind-${{ matrix.nx_ci_execution_env }}-rust" 
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
 
-      # Nx Cloud does not support macOS agents yet, so we need to use local agents for now
-      - if: matrix.nx_ci_execution_env == 'macos'
+      - if: matrix.nx_ci_execution_env != 'linux'
         run: >
           pnpm dlx nx-cloud start-ci-run
           --stop-agents-on-failure=false
@@ -68,38 +64,6 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
-      # Cache cargo if Rust
-      # - name: Cache cargo
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #       ~/.cargo/bin/
-      #       ~/.cargo/registry/index/
-      #       ~/.cargo/registry/cache/
-      #       ~/.cargo/git/db/
-      #       target/
-      #     key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
-
-      # TODO: cache this with nx
-      # Cache the `oxide` Rust build
-      # - name: Cache oxide build
-      #   uses: actions/cache@v4
-      #   with:
-      #     path: |
-      #       ./target/
-      #       ./crates/node/*.node
-      #       ./crates/node/index.js
-      #       ./crates/node/index.d.ts
-      #     key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
-
-      # TODO: do we actually need rust here?
-      # Install Rust
-      # - name: Install Rust (Stable)
-      #   run: rustup default stable
-
-      # - name: Setup rust target
-      #   run: rustup target add ${{ matrix.target }}
-
       - name: Install dependencies
         run: pnpm install
 
@@ -108,88 +72,78 @@ jobs:
           main-branch-name: 'next'
 
       # We only run this on linux since there is no reason to check this multiple times
+      #
+      # TODO: run this in parallel with nx afffected
+      # See: https://nx.dev/ci/recipes/enterprise/dte/github-dte
       - if: matrix.nx_ci_execution_env == 'linux'
         name: Format Check
         run: npx nx-cloud record -- nx format:check
         env:
           NX_CLOUD_DISTRIBUTED_EXECUTION: false
 
-      # Nx Affected command build
-      # - name: Run affected build
-      #   run: npx nx affected -t=build --exclude="*playground*"
-
-      # - name: Run affected for postbuild except playgrounds
-      #   run: npx nx affected -t=postbuild
-
       - name: Run affected validation tasks
         run: npx nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
 
   # TODO: reenable once windows is working
-  # macos-dte-agents:
-  #   name: (macos) DTE Agent ${{ matrix.agent }}
-  #   runs-on: macos-14
-  #   timeout-minutes: 30
+  dte-agent:
+    name: (${{ matrix.nx_ci_execution_env }}) DTE Agent ${{ matrix.agent_number }}
+    runs-on: macos-14
+    timeout-minutes: 30
 
-  #   env:
-  #     NX_CI_EXECUTION_ENV: macos
-  #     NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
+    env:
+      NX_CI_EXECUTION_ENV: ${{ matrix.nx_ci_execution_env}}
+      NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
 
-  #   strategy:
-  #     fail-fast: false
-  #     matrix:
-  #       node-version: [20]
-  #       agent: [1, 2, 3]
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20]
+        agent_number: [1, 2, 3]
+        os: [windows-latest, macos-14]
+        include:
+          - os: windows-latest
+            nx_ci_execution_env: windows
+          - os: macos-14
+            nx_ci_execution_env: macos
 
-  #   steps:
-  #     - uses: actions/checkout@v4
-  #       with:
-  #         fetch-depth: 0
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-  #     - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v4
 
-  #     - name: Use Node.js ${{ matrix.node-version }}
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: ${{ matrix.node-version }}
-  #         cache: 'pnpm'
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
 
-  #     # Cache cargo if Rust
-  #     - name: Cache cargo
-  #       uses: actions/cache@v4
-  #       with:
-  #         path: |
-  #           ~/.cargo/bin/
-  #           ~/.cargo/registry/index/
-  #           ~/.cargo/registry/cache/
-  #           ~/.cargo/git/db/
-  #           target/
-  #         key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+      # Cache cargo if Rust
+      - name: Cache cargo
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/bin/
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            target/
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-  #     # TODO: cache this with Nx cache
-  #     # Cache the `oxide` Rust build
-  #     # - name: Cache oxide build
-  #     #   uses: actions/cache@v4
-  #     #   with:
-  #     #     path: |
-  #     #       ./target/
-  #     #       ./crates/node/*.node
-  #     #       ./crates/node/index.js
-  #     #       ./crates/node/index.d.ts
-  #     #     key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
+      - name: Install Rust (Stable)
+        run: rustup default stable
 
-  #     - name: Install Rust (Stable)
-  #       run: rustup default stable
+      # - name: Setup rust target
+      #   run: rustup target add aarch64-apple-darwin
 
-  #     # - name: Setup rust target
-  #     #   run: rustup target add aarch64-apple-darwin
+      - name: Install dependencies
+        run: pnpm install
 
-  #     - name: Install dependencies
-  #       run: pnpm install
+      - name: Install Playwrite
+        run: pnpm exec playwright install --with-deps
 
-  #     - name: Install Playwrite
-  #       run: pnpm exec playwright install --with-deps
-
-  #     - name: Start Nx Agent ${{ matrix.agent }}
-  #       run: npx nx-cloud start-agent
-  #       env:
-  #         NX_AGENT_NAME: ${{ matrix.agent }}
+      - name: Start Nx Agent ${{ matrix.agent_number }}
+        run: npx nx-cloud start-agent
+        env:
+          NX_AGENT_NAME: ${{ matrix.agent_number }}
