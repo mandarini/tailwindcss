@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 jobs:
-  tests:
+  dte:
     name: (${{ matrix.nx_ci_execution_env }}) DTE
     strategy:
       fail-fast: false
@@ -84,7 +84,6 @@ jobs:
       - name: Run affected validation tasks
         run: npx nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
 
-  # TODO: reenable once windows is working
   dte-agent:
     name: (${{ matrix.nx_ci_execution_env }}) DTE Agent ${{ matrix.agent_number }}
     runs-on: macos-14
