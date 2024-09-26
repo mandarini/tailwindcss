@@ -11,28 +11,28 @@ permissions:
 
 jobs:
   dte:
-    name: (${{ matrix.nx_ci_execution_env }}) DTE
+    name: DTE Host
     strategy:
       fail-fast: false
       matrix:
         node-version: [20]
-        os: [ubuntu-latest, windows-latest, macos-14]
-        include:
-          - os: ubuntu-latest
-            nx_ci_execution_env: linux
-            nx_ci_validation_targets: build,lint,test,test:ui,integration-test
-          - os: windows-latest
-            nx_ci_execution_env: windows
-            nx_ci_validation_targets: build,test,test:ui,integration-test
-          - os: macos-14
-            nx_ci_execution_env: macos
-            nx_ci_validation_targets: build,test,test:ui,integration-test
+        # os: [ubuntu-latest, windows-latest, macos-14]
+        # include:
+        #   - os: ubuntu-latest
+        #     nx_ci_execution_env: linux
+        #     nx_ci_validation_targets: build,lint,test,test:ui,integration-test
+        #   - os: windows-latest
+        #     nx_ci_execution_env: windows
+        #     nx_ci_validation_targets: build,test,test:ui,integration-test
+        #   - os: macos-14
+        #     nx_ci_execution_env: macos
+        #     nx_ci_validation_targets: build,test,test:ui,integration-test
 
-    runs-on: ${{ matrix.os }}
+    runs-on: 'ubuntu-latest'
     timeout-minutes: 30
 
     env:
-      NX_CI_EXECUTION_ENV: ${{ matrix.nx_ci_execution_env }}
+      # NX_CI_EXECUTION_ENV: ${{ matrix.nx_ci_execution_env }}
       NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
 
     steps:
@@ -45,14 +45,26 @@ jobs:
       # For now, only run linux tasks on agents
       # Mac is not supported, and windows requires
       # some more refinement to get working
-      - if: matrix.nx_ci_execution_env == 'linux'
+      - name: 'Start Linux Run'
+        env:
+          NX_CI_EXECUTION_ENV: 'linux'
         run: >
           pnpm dlx nx-cloud start-ci-run
-          --distribute-on="3 tailwind-${{ matrix.nx_ci_execution_env }}-rust" 
+          --distribute-on="3 tailwind-linux-rust" 
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
 
-      - if: matrix.nx_ci_execution_env != 'linux'
+      - name: 'Start Windows Run'
+        env:
+          NX_CI_EXECUTION_ENV: 'windows'
+        run: >
+          pnpm dlx nx-cloud start-ci-run
+          --stop-agents-on-failure=false
+          --stop-agents-after="integration-test"
+
+      - name: 'Start MacOs Run'
+        env:
+          NX_CI_EXECUTION_ENV: 'macos'
         run: >
           pnpm dlx nx-cloud start-ci-run
           --stop-agents-on-failure=false
@@ -71,18 +83,47 @@ jobs:
         with:
           main-branch-name: 'next'
 
+      - name: Affected Tasks
+        run: |
+          # initialize an array to store process IDs (PIDs)
+          pids=()
+
+          # function to run commands and store the PID
+          function run_command() {
+            local command=$1
+            $command &  # run the command in the background
+            pids+=($!)  # store the PID of the background process
+          }
+
+          # list of commands to be run on main has env flag NX_CLOUD_DISTRIBUTED_EXECUTION set to false
+          run_command "NX_CLOUD_DISTRIBUTED_EXECUTION=false pnpm exec nx-cloud record -- nx format:check"
+
+          # list of commands to be distributed to different execution envs
+          run_command "NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude="*playground*"
+          run_command "NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
+          run_command "NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
+
+          # wait for all background processes to finish
+          for pid in ${pids[*]}; do
+            if ! wait $pid; then
+              exit 1  # exit with an error status if any process fails
+            fi
+          done
+
+          exit 0 # exits with succes
+
       # We only run this on linux since there is no reason to check this multiple times
       #
       # TODO: run this in parallel with nx afffected
       # See: https://nx.dev/ci/recipes/enterprise/dte/github-dte
-      - if: matrix.nx_ci_execution_env == 'linux'
-        name: Format Check
-        run: pnpm exec nx-cloud record -- nx format:check
-        env:
-          NX_CLOUD_DISTRIBUTED_EXECUTION: false
+      # - if: matrix.nx_ci_execution_env == 'linux'
+      #   name: Format Check
+      #   run: pnpm exec nx-cloud record -- nx format:check
+      #   env:
+      #     NX_CLOUD_DISTRIBUTED_EXECUTION: false
 
-      - name: Run affected validation tasks
-        run: pnpm exec nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
+      # - name: Run affected validation tasks
+      #   run: pnpm exec nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
 
   dte-agent:
     name: (${{ matrix.nx_ci_execution_env }}) DTE Agent ${{ matrix.agent_number }}
