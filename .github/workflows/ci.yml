@@ -77,12 +77,12 @@ jobs:
       # See: https://nx.dev/ci/recipes/enterprise/dte/github-dte
       - if: matrix.nx_ci_execution_env == 'linux'
         name: Format Check
-        run: npx nx-cloud record -- nx format:check
+        run: pnpm exec nx-cloud record -- nx format:check
         env:
           NX_CLOUD_DISTRIBUTED_EXECUTION: false
 
       - name: Run affected validation tasks
-        run: npx nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
+        run: pnpm exec nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
 
   dte-agent:
     name: (${{ matrix.nx_ci_execution_env }}) DTE Agent ${{ matrix.agent_number }}
@@ -133,9 +133,6 @@ jobs:
       - name: Install Rust (Stable)
         run: rustup default stable
 
-      # - name: Setup rust target
-      #   run: rustup target add aarch64-apple-darwin
-
       - name: Install dependencies
         run: pnpm install
 
@@ -143,6 +140,6 @@ jobs:
         run: pnpm exec playwright install --with-deps
 
       - name: Start Nx Agent ${{ matrix.agent_number }}
-        run: npx nx-cloud start-agent
+        run: pnpm exec nx-cloud start-agent
         env:
           NX_AGENT_NAME: ${{ matrix.agent_number }}
