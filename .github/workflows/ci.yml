@@ -42,9 +42,6 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
-      # For now, only run linux tasks on agents
-      # Mac is not supported, and windows requires
-      # some more refinement to get working
       - name: 'Start Linux Run'
         env:
           NX_CI_EXECUTION_ENV: 'linux'
@@ -59,6 +56,7 @@ jobs:
           NX_CI_EXECUTION_ENV: 'windows'
         run: >
           pnpm dlx nx-cloud start-ci-run
+          --distribute-on="manual"
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
 
@@ -67,6 +65,7 @@ jobs:
           NX_CI_EXECUTION_ENV: 'macos'
         run: >
           pnpm dlx nx-cloud start-ci-run
+          --distribute-on="manual"
           --stop-agents-on-failure=false
           --stop-agents-after="integration-test"
 
