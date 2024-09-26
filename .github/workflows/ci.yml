@@ -43,8 +43,8 @@ jobs:
       - uses: pnpm/action-setup@v4
 
       # For now, only run linux tasks on agents
-      # Mac is not supported, and windows requires 
-      # some more refinement to get working 
+      # Mac is not supported, and windows requires
+      # some more refinement to get working
       - if: matrix.nx_ci_execution_env == 'linux'
         run: >
           pnpm dlx nx-cloud start-ci-run
