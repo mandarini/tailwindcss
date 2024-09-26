@@ -16,17 +16,6 @@ jobs:
       fail-fast: false
       matrix:
         node-version: [20]
-        # os: [ubuntu-latest, windows-latest, macos-14]
-        # include:
-        #   - os: ubuntu-latest
-        #     nx_ci_execution_env: linux
-        #     nx_ci_validation_targets: build,lint,test,test:ui,integration-test
-        #   - os: windows-latest
-        #     nx_ci_execution_env: windows
-        #     nx_ci_validation_targets: build,test,test:ui,integration-test
-        #   - os: macos-14
-        #     nx_ci_execution_env: macos
-        #     nx_ci_validation_targets: build,test,test:ui,integration-test
 
     runs-on: 'ubuntu-latest'
     timeout-minutes: 30
@@ -126,7 +115,7 @@ jobs:
 
   dte-agent:
     name: (${{ matrix.nx_ci_execution_env }}) DTE Agent ${{ matrix.agent_number }}
-    runs-on: macos-14
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
     env:
