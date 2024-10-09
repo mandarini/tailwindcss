@@ -159,6 +159,12 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
+      - if: matrix.nx_ci_execution_env == 'windows'
+        name: 'Setup windows env variables'
+        run: |
+          # Fix issue with cross-compiled binaries failing to copy into non existent home dir (C:\Users\Workflows)
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "BUN_INSTALL_CACHE_DIR=$env:USERPROFILE\.bun\install\cache"
+
       - name: Install Rust (Stable)
         run: rustup default stable
 
