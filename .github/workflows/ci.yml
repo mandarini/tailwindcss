@@ -32,12 +32,9 @@ jobs:
 
       - name: 'Start CI Runs'
         run: |
-          pnpm dlx nx-cloud --version # avoid issues with dlx in parallel by downloading first
-          cat << EOM | parallel {} --stop-agents-on-failure=false --stop-agents-after="integration-test"
-          NX_CI_EXECUTION_ENV=linux   pnpm dlx nx-cloud start-ci-run --distribute-on="3 tailwind-linux-rust"
-          NX_CI_EXECUTION_ENV=windows pnpm dlx nx-cloud start-ci-run --distribute-on="manual"
-          NX_CI_EXECUTION_ENV=macos   pnpm dlx nx-cloud start-ci-run --distribute-on="manual"
-          EOM
+          NX_CI_EXECUTION_ENV=linux   pnpm dlx nx-cloud start-ci-run --distribute-on="3 tailwind-linux-rust" --stop-agents-on-failure=false --stop-agents-after="integration-test"
+          NX_CI_EXECUTION_ENV=windows pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
+          NX_CI_EXECUTION_ENV=macos   pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
