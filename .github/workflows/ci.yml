@@ -84,10 +84,10 @@ jobs:
 
       - name: Start Affected Tasks
         run: |
-          cat << EOM | parallel
-          env NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude="*playground*"
-          env NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
-          env NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
+          cat << EOM | parallel {} --exclude="*playground*" --base=$NX_BASE --head=$NX_HEAD
+          NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test
+          NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test
+          NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test
           EOM
 
       # - name: Affected Tasks
