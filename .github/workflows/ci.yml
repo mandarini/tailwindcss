@@ -64,11 +64,6 @@ jobs:
           NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test
           EOM
 
-      # ensure everything is shut down, even in case were things blow up
-      - name: Complete CI Run
-        if: always()
-        run: pnpm dlx nx-cloud complete-ci-run
-
   dte-agent:
     name: DTE Agent ${{ matrix.agent_number }} (${{ matrix.nx_ci_execution_env }})
     runs-on: ${{ matrix.os }}
