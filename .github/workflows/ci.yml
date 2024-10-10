@@ -32,6 +32,7 @@ jobs:
 
       - name: 'Start CI Runs'
         run: |
+          pnpm dlx nx-cloud --version # avoid issues with dlx in parallel by downloading first
           cat << EOM | parallel {} --stop-agents-on-failure=false --stop-agents-after="integration-test"
           NX_CI_EXECUTION_ENV=linux   pnpm dlx nx-cloud start-ci-run --distribute-on="3 tailwind-linux-rust"
           NX_CI_EXECUTION_ENV=windows pnpm dlx nx-cloud start-ci-run --distribute-on="manual"
@@ -69,7 +70,7 @@ jobs:
       # ensure everything is shut down, even in case were things blow up
       - name: Complete CI Run
         if: always()
-        run: pnpm exec nx-cloud complete-ci-run
+        run: pnpm dlx nx-cloud complete-ci-run
 
   dte-agent:
     name: DTE Agent ${{ matrix.agent_number }} (${{ matrix.nx_ci_execution_env }})
