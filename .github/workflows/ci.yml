@@ -21,7 +21,6 @@ jobs:
     timeout-minutes: 30
 
     env:
-      # NX_CI_EXECUTION_ENV: ${{ matrix.nx_ci_execution_env }}
       NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
 
     steps:
@@ -31,32 +30,38 @@ jobs:
 
       - uses: pnpm/action-setup@v4
 
-      - name: 'Start Linux Run'
-        env:
-          NX_CI_EXECUTION_ENV: 'linux'
-        run: >
-          pnpm dlx nx-cloud start-ci-run
-          --distribute-on="3 tailwind-linux-rust" 
-          --stop-agents-on-failure=false
-          --stop-agents-after="integration-test"
+      - name: 'Start CI Runs'
+        run: |
+          NX_CI_EXECUTION_ENV=linux   pnpm dlx nx-cloud start-ci-run --distribute-on="3 tailwind-linux-rust" --stop-agents-on-failure=false --stop-agents-after="integration-test"
+          NX_CI_EXECUTION_ENV=windows pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
+          NX_CI_EXECUTION_ENV=macos   pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
 
-      - name: 'Start Windows Run'
-        env:
-          NX_CI_EXECUTION_ENV: 'windows'
-        run: >
-          pnpm dlx nx-cloud start-ci-run
-          --distribute-on="manual"
-          --stop-agents-on-failure=false
-          --stop-agents-after="integration-test"
+      # - name: 'Start Linux Runs'
+      #   env:
+      #     NX_CI_EXECUTION_ENV: 'linux'
+      #   run: >
+      #     pnpm dlx nx-cloud start-ci-run
+      #     --distribute-on="3 tailwind-linux-rust" 
+      #     --stop-agents-on-failure=false
+      #     --stop-agents-after="integration-test"
 
-      - name: 'Start MacOs Run'
-        env:
-          NX_CI_EXECUTION_ENV: 'macos'
-        run: >
-          pnpm dlx nx-cloud start-ci-run
-          --distribute-on="manual"
-          --stop-agents-on-failure=false
-          --stop-agents-after="integration-test"
+      # - name: 'Start Windows Run'
+      #   env:
+      #     NX_CI_EXECUTION_ENV: 'windows'
+      #   run: >
+      #     pnpm dlx nx-cloud start-ci-run
+      #     --distribute-on="manual"
+      #     --stop-agents-on-failure=false
+      #     --stop-agents-after="integration-test"
+
+      # - name: 'Start MacOs Run'
+      #   env:
+      #     NX_CI_EXECUTION_ENV: 'macos'
+      #   run: >
+      #     pnpm dlx nx-cloud start-ci-run
+      #     --distribute-on="manual"
+      #     --stop-agents-on-failure=false
+      #     --stop-agents-after="integration-test"
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -83,7 +88,7 @@ jobs:
             pids+=($!)  # store the PID of the background process
           }
 
-          # list of commands to be run direcly on this maching
+          # commands to be run direcly on this machine
           run_command "env NX_CLOUD_DISTRIBUTED_EXECUTION=false pnpm exec nx-cloud record -- nx format:check"
 
           # list of commands to be distributed to different execution envs
@@ -99,6 +104,11 @@ jobs:
           done
 
           exit 0 # exits with succes
+
+      # ensure everything is shut down, even in case were things blow up
+      - name: Complete CI Run
+        if: always()
+        run: pnpm exec nx-cloud complete-ci-run
 
       # We only run this on linux since there is no reason to check this multiple times
       #
