@@ -82,34 +82,39 @@ jobs:
         env:
           NX_CLOUD_DISTRIBUTED_EXECUTION: false
 
-      - name: Do we have parallel?
-        run: parallel --version
-
-      - name: Affected Tasks
+      - name: Start Affected Tasks
         run: |
-          # initialize an array to store process IDs (PIDs)
-          pids=()
+          cat << EOM | parallel
+          env NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude="*playground*"
+          env NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
+          env NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude="*playground*"
+          EOM
 
-          # function to run commands and store the PID
-          function run_command() {
-            local command=$1
-            $command &  # run the command in the background
-            pids+=($!)  # store the PID of the background process
-          }
+      # - name: Affected Tasks
+      #   run: |
+      #     # initialize an array to store process IDs (PIDs)
+      #     pids=()
 
-          # list of commands to be distributed to different execution envs
-          run_command "env NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude=\"*playground*\""
-          run_command "env NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
-          run_command "env NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
+      #     # function to run commands and store the PID
+      #     function run_command() {
+      #       local command=$1
+      #       $command &  # run the command in the background
+      #       pids+=($!)  # store the PID of the background process
+      #     }
 
-          # wait for all background processes to finish
-          for pid in ${pids[*]}; do
-            if ! wait $pid; then
-              exit 1  # exit with an error status if any process fails
-            fi
-          done
+      #     # list of commands to be distributed to different execution envs
+      #     run_command "env NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude=\"*playground*\""
+      #     run_command "env NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
+      #     run_command "env NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
 
-          exit 0 # exits with succes
+      #     # wait for all background processes to finish
+      #     for pid in ${pids[*]}; do
+      #       if ! wait $pid; then
+      #         exit 1  # exit with an error status if any process fails
+      #       fi
+      #     done
+
+      #     exit 0 # exits with succes
 
       # ensure everything is shut down, even in case were things blow up
       - name: Complete CI Run
