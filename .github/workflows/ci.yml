@@ -41,7 +41,7 @@ jobs:
       #     NX_CI_EXECUTION_ENV: 'linux'
       #   run: >
       #     pnpm dlx nx-cloud start-ci-run
-      #     --distribute-on="3 tailwind-linux-rust" 
+      #     --distribute-on="3 tailwind-linux-rust"
       #     --stop-agents-on-failure=false
       #     --stop-agents-after="integration-test"
 
@@ -76,6 +76,15 @@ jobs:
         with:
           main-branch-name: 'next'
 
+      # Run this first, serially to ensure graph is created before we kick off affected in parallel
+      - name: Format Check
+        run: pnpm exec nx-cloud record -- nx format:check
+        env:
+          NX_CLOUD_DISTRIBUTED_EXECUTION: false
+
+      - name: Do we have parallel?
+        run: parallel --version
+
       - name: Affected Tasks
         run: |
           # initialize an array to store process IDs (PIDs)
@@ -87,9 +96,6 @@ jobs:
             $command &  # run the command in the background
             pids+=($!)  # store the PID of the background process
           }
-
-          # commands to be run direcly on this machine
-          run_command "env NX_CLOUD_DISTRIBUTED_EXECUTION=false pnpm exec nx-cloud record -- nx format:check"
 
           # list of commands to be distributed to different execution envs
           run_command "env NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude=\"*playground*\""
