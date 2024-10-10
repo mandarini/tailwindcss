@@ -1,0 +1,123 @@
+launch-templates:
+  # Custom template name, the name is referenced via --distribute-on="3 tailwind-linux-rust"
+  tailwind-linux-rust:
+    resource-class: 'docker_linux_amd64/large'
+    image: 'ubuntu22.04-node20.11-v9'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
+      - name: Restore Node Modules Cache
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/cache/main.yaml'
+        inputs:
+          key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+          paths: 'node_modules'
+          base-branch: 'next'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'next'
+      - name: Install Rust
+        script: |
+          curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh -s -- -y
+          source "$HOME/.cargo/env"
+          rustup toolchain install stable
+          # persist cargo bin into PATH
+          echo "PATH=$HOME/.cargo/bin:$PATH" >> $NX_CLOUD_ENV
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'
+
+  tailwind-windows-rust:
+    resource-class: 'windows/medium'
+    image: 'windows-2022'
+    init-steps:
+      - name: Checkout
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/checkout/main.yaml'
+      - name: Restore Node Modules Cache
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/cache/main.yaml'
+        inputs:
+          key: 'package-lock.json|yarn.lock|pnpm-lock.yaml'
+          paths: 'node_modules'
+          base-branch: 'next'
+      - name: Restore Browser Binary Cache
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/cache/main.yaml'
+        env:
+          KEY: 'package-lock.json|yarn.lock|pnpm-lock.yaml|"browsers"'
+          PATHS: |
+            '../.cache/ms-playwright'
+          BASE_BRANCH: 'next'
+
+      # TODO: add "Build Tools for Visual Studio ... with the Visual C++ option" to base windows image
+      # - name: Install MSVC
+      #   script: |
+      #     Write-Host "Installing MSVC..."
+
+      #     (New-Object Net.WebClient).DownloadFile('https://aka.ms/vs/17/release/vs_community.exe', 'vs.exe')
+      #     cmd /c start /wait vs.exe --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart
+      #     Remove-Item vs.exe
+
+      #     # Invoke-WebRequest -Uri https://aka.ms/vs/17/release/vs_community.exe -OutFile vs.exe
+      #     # # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.Tools.x86.x64 --add Microsoft.VisualStudio.Component.Windows10SDK.18362 --add Microsoft.VisualStudio.Component.VC.CoreBuildTools --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --add Microsoft.VisualStudio.Component.VC.Redist.14.Latest --includeRecommended --passive --wait --norestart"
+      #     # Start-Process -Wait vs.exe -ArgumentList "--add Microsoft.VisualStudio.Component.VC.CoreBuildTools --passive --wait --norestart"
+
+      #     # Can we use winget here?
+      #     # winget install --id=Microsoft.VisualStudio.2022.BuildTools  -e
+
+      #     Write-Host "MSVC installed"
+
+      - name: Install Rust
+        script: |
+          Write-Host "Installing Rust..."
+          $exePath = "$env:TEMP\rustup-init.exe"
+
+          Write-Host "Downloading..."
+          (New-Object Net.WebClient).DownloadFile('https://static.rust-lang.org/rustup/dist/x86_64-pc-windows-msvc/rustup-init.exe', $exePath)
+
+          Write-Host "Installing..."
+          cmd /c start /wait $exePath -y
+          Remove-Item $exePath
+
+          Write-Host "Adding cargo to PATH and NX_CLOUD_ENV is:"
+          $env:Path += ";$env:USERPROFILE\.cargo\bin"
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "PATH=$env:Path"
+
+          # TODO: use msvc instead of gnu once base image updated
+          Write-Host "Installing toolchain..."
+          rustup set default-host x86_64-pc-windows-gnu
+
+          Write-Host "Rust installed:"
+          rustup show
+          cargo --version
+          rustup --version
+          rustc --version
+
+      # Fix cross compilation issues with bun and tmp directories
+      - name: Setup environment variables
+        script: |
+          # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "GITHUB_WORKSPACE=C:\Workspace"
+
+          # Fix issue with cross-compiled binaries failing to copy into non existent home dir (C:\Users\Workflows)
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "BUN_INSTALL_CACHE_DIR=C:\Workspace\.bun\install\cache"
+
+          # See: https://github.com/tailwindlabs/tailwindcss/pull/14485
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "CARGO_PROFILE_RELEASE_LTO=off"
+          # TODO: if we stay on gnu, is there an equivalent to lld-link?
+          # Note MSVC_LINKER will have no effect on gnu builds
+          Add-Content -Path $env:NX_CLOUD_ENV -Value "CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER=lld-link"
+
+          Write-Host "CWD is:"
+          Get-Location
+
+          Write-Host "NX_CLOUD_ENV is:"
+          Get-Content -Path $env:NX_CLOUD_ENV
+
+      - name: Install Node Modules
+        uses: 'nrwl/nx-cloud-workflows/v4/workflow-steps/install-node-modules/main.yaml'
+
+      - name: Install Browsers (if needed)
+        uses: 'nrwl/nx-cloud-workflows/v3.6/workflow-steps/install-browsers/main.yaml'

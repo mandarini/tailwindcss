@@ -6,21 +6,90 @@ on:
   pull_request:
 
 permissions:
+  actions: read
   contents: read
 
 jobs:
-  tests:
+  dte:
+    name: DTE Host
     strategy:
       fail-fast: false
       matrix:
         node-version: [20]
-        runner: [ubuntu-latest, windows-latest, macos-14]
 
-    runs-on: ${{ matrix.runner }}
+    runs-on: 'ubuntu-latest'
     timeout-minutes: 30
+
+    env:
+      NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - name: 'Start CI Runs'
+        run: |
+          NX_CI_EXECUTION_ENV=linux   pnpm dlx nx-cloud start-ci-run --distribute-on="3 tailwind-linux-rust" --stop-agents-on-failure=false --stop-agents-after="integration-test"
+          NX_CI_EXECUTION_ENV=windows pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
+          NX_CI_EXECUTION_ENV=macos   pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
+
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - uses: nrwl/nx-set-shas@v4
+        with:
+          main-branch-name: 'next'
+
+      # Run this first, serially to ensure graph is created before we kick off affected in parallel
+      - name: Format Check
+        run: pnpm exec nx-cloud record -- nx format:check
+        env:
+          NX_CLOUD_DISTRIBUTED_EXECUTION: false
+          NX_CI_EXECUTION_ENV: linux
+
+      - name: Run Affected Tasks
+        run: |
+          cat << EOM | parallel {} --exclude="*playground*" --base=$NX_BASE --head=$NX_HEAD
+          NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test
+          NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test
+          NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test
+          EOM
+
+  dte-agent:
+    name: DTE Agent ${{ matrix.agent_number }} (${{ matrix.nx_ci_execution_env }})
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+
+    env:
+      NX_CI_EXECUTION_ENV: ${{ matrix.nx_ci_execution_env}}
+      NX_BRANCH: ${{ github.event.pull_request.head.ref || github.ref }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [20]
+        agent_number: [1, 2, 3]
+        os: [windows-latest, macos-14]
+        include:
+          - os: windows-latest
+            nx_ci_execution_env: windows
+          - os: macos-14
+            nx_ci_execution_env: macos
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: pnpm/action-setup@v4
 
       - name: Use Node.js ${{ matrix.node-version }}
@@ -29,7 +98,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
-      # Cargo already skips downloading dependencies if they already exist
+      # Cache cargo if Rust
       - name: Cache cargo
         uses: actions/cache@v4
         with:
@@ -41,41 +110,22 @@ jobs:
             target/
           key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
 
-      # Cache the `oxide` Rust build
-      - name: Cache oxide build
-        uses: actions/cache@v4
-        with:
-          path: |
-            ./target/
-            ./crates/node/*.node
-            ./crates/node/index.js
-            ./crates/node/index.d.ts
-          key: ${{ runner.os }}-oxide-${{ hashFiles('./crates/**/*') }}
+      - if: matrix.nx_ci_execution_env == 'windows'
+        name: 'Setup windows env variables'
+        run: |
+          # Fix issue with cross-compiled binaries failing to copy into non existent home dir (C:\Users\Workflows)
+          Add-Content -Path $env:GITHUB_ENV -Value "BUN_INSTALL_CACHE_DIR=$env:GITHUB_WORKSPACE\.bun\install\cache"
+
+      - name: Install Rust (Stable)
+        run: rustup default stable
 
       - name: Install dependencies
         run: pnpm install
 
-      - name: Build
-        run: pnpm run build
+      - name: Install Playwrite
+        run: pnpm exec playwright install --with-deps
+
+      - name: Start Nx Agent ${{ matrix.agent_number }}
+        run: pnpm exec nx-cloud start-agent
         env:
-          CARGO_PROFILE_RELEASE_LTO: 'off'
-          CARGO_TARGET_X86_64_PC_WINDOWS_MSVC_LINKER: 'lld-link'
-
-      - name: Lint
-        run: pnpm run lint
-        # Only lint on linux to avoid \r\n line ending errors
-        if: matrix.runner == 'ubuntu-latest'
-
-      - name: Test
-        run: pnpm run test
-
-      - name: Integration Tests
-        run: pnpm run test:integrations
-        env:
-          GITHUB_WORKSPACE: ${{ github.workspace }}
-
-      - name: Install Playwright Browsers
-        run: npx playwright install --with-deps
-
-      - name: Run Playwright tests
-        run: npm run test:ui
+          NX_AGENT_NAME: ${{ matrix.agent_number }}

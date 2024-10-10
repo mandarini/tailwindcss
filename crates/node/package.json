@@ -57,5 +57,38 @@
     "@tailwindcss/oxide-linux-x64-gnu": "workspace:*",
     "@tailwindcss/oxide-linux-x64-musl": "workspace:*",
     "@tailwindcss/oxide-win32-x64-msvc": "workspace:*"
+  },
+  "nx": {
+    "targets": {
+      "build": {
+        "dependsOn": [
+          "^build"
+        ],
+        "inputs": [
+          "{projectRoot}/src/**/*",
+          "{projectRoot}/build.rs",
+          "{projectRoot}/package.json",
+          "{projectRoot}/Cargo.toml"
+        ],
+        "outputs": [
+          "{workspaceRoot}/target",
+          "{projectRoot}/*.node",
+          "{projectRoot}/index.js",
+          "{projectRoot}/index.d.ts"
+        ]
+      },
+      "dev": {
+        "dependsOn": [
+          "^dev"
+        ],
+        "inputs": [
+          "{projectRoot}/src/**/*",
+          "{projectRoot}/build.rs",
+          "{projectRoot}/package.json",
+          "{projectRoot}/Cargo.toml"
+        ],
+        "cache": false
+      }
+    }
   }
 }
