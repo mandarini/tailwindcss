@@ -32,36 +32,11 @@ jobs:
 
       - name: 'Start CI Runs'
         run: |
-          NX_CI_EXECUTION_ENV=linux   pnpm dlx nx-cloud start-ci-run --distribute-on="3 tailwind-linux-rust" --stop-agents-on-failure=false --stop-agents-after="integration-test"
-          NX_CI_EXECUTION_ENV=windows pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
-          NX_CI_EXECUTION_ENV=macos   pnpm dlx nx-cloud start-ci-run --distribute-on="manual"                --stop-agents-on-failure=false --stop-agents-after="integration-test"
-
-      # - name: 'Start Linux Runs'
-      #   env:
-      #     NX_CI_EXECUTION_ENV: 'linux'
-      #   run: >
-      #     pnpm dlx nx-cloud start-ci-run
-      #     --distribute-on="3 tailwind-linux-rust"
-      #     --stop-agents-on-failure=false
-      #     --stop-agents-after="integration-test"
-
-      # - name: 'Start Windows Run'
-      #   env:
-      #     NX_CI_EXECUTION_ENV: 'windows'
-      #   run: >
-      #     pnpm dlx nx-cloud start-ci-run
-      #     --distribute-on="manual"
-      #     --stop-agents-on-failure=false
-      #     --stop-agents-after="integration-test"
-
-      # - name: 'Start MacOs Run'
-      #   env:
-      #     NX_CI_EXECUTION_ENV: 'macos'
-      #   run: >
-      #     pnpm dlx nx-cloud start-ci-run
-      #     --distribute-on="manual"
-      #     --stop-agents-on-failure=false
-      #     --stop-agents-after="integration-test"
+          cat << EOM | parallel {} --stop-agents-on-failure=false --stop-agents-after="integration-test"
+          NX_CI_EXECUTION_ENV=linux   pnpm dlx nx-cloud start-ci-run --distribute-on="3 tailwind-linux-rust"
+          NX_CI_EXECUTION_ENV=windows pnpm dlx nx-cloud start-ci-run --distribute-on="manual"
+          NX_CI_EXECUTION_ENV=macos   pnpm dlx nx-cloud start-ci-run --distribute-on="manual"
+          EOM
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
@@ -81,8 +56,9 @@ jobs:
         run: pnpm exec nx-cloud record -- nx format:check
         env:
           NX_CLOUD_DISTRIBUTED_EXECUTION: false
+          NX_CI_EXECUTION_ENV: linux
 
-      - name: Start Affected Tasks
+      - name: Run Affected Tasks
         run: |
           cat << EOM | parallel {} --exclude="*playground*" --base=$NX_BASE --head=$NX_HEAD
           NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test
@@ -90,52 +66,13 @@ jobs:
           NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test
           EOM
 
-      # - name: Affected Tasks
-      #   run: |
-      #     # initialize an array to store process IDs (PIDs)
-      #     pids=()
-
-      #     # function to run commands and store the PID
-      #     function run_command() {
-      #       local command=$1
-      #       $command &  # run the command in the background
-      #       pids+=($!)  # store the PID of the background process
-      #     }
-
-      #     # list of commands to be distributed to different execution envs
-      #     run_command "env NX_CI_EXECUTION_ENV=linux   pnpm exec nx affected -t lint,build,test,test:ui,integration-test --exclude=\"*playground*\""
-      #     run_command "env NX_CI_EXECUTION_ENV=windows pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
-      #     run_command "env NX_CI_EXECUTION_ENV=macos   pnpm exec nx affected -t build,test,test:ui,integration-test      --exclude=\"*playground*\""
-
-      #     # wait for all background processes to finish
-      #     for pid in ${pids[*]}; do
-      #       if ! wait $pid; then
-      #         exit 1  # exit with an error status if any process fails
-      #       fi
-      #     done
-
-      #     exit 0 # exits with succes
-
       # ensure everything is shut down, even in case were things blow up
       - name: Complete CI Run
         if: always()
         run: pnpm exec nx-cloud complete-ci-run
 
-      # We only run this on linux since there is no reason to check this multiple times
-      #
-      # TODO: run this in parallel with nx afffected
-      # See: https://nx.dev/ci/recipes/enterprise/dte/github-dte
-      # - if: matrix.nx_ci_execution_env == 'linux'
-      #   name: Format Check
-      #   run: pnpm exec nx-cloud record -- nx format:check
-      #   env:
-      #     NX_CLOUD_DISTRIBUTED_EXECUTION: false
-
-      # - name: Run affected validation tasks
-      #   run: pnpm exec nx affected -t="${{ matrix.nx_ci_validation_targets }}" --exclude="*playground*"
-
   dte-agent:
-    name: (${{ matrix.nx_ci_execution_env }}) DTE Agent ${{ matrix.agent_number }}
+    name: DTE Agent ${{ matrix.agent_number }} (${{ matrix.nx_ci_execution_env }})
     runs-on: ${{ matrix.os }}
     timeout-minutes: 30
 
