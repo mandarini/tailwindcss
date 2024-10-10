@@ -163,7 +163,7 @@ jobs:
         name: 'Setup windows env variables'
         run: |
           # Fix issue with cross-compiled binaries failing to copy into non existent home dir (C:\Users\Workflows)
-          Add-Content -Path $env:GITHUB_ENV -Value "BUN_INSTALL_CACHE_DIR=$env:USERPROFILE\.bun\install\cache"
+          Add-Content -Path $env:GITHUB_ENV -Value "BUN_INSTALL_CACHE_DIR=$env:GITHUB_WORKSPACE\.bun\install\cache"
 
       - name: Install Rust (Stable)
         run: rustup default stable
